@@ -1,3 +1,8 @@
 3.)
 concurrent execution (mutlithreaded/multiprocessing):
-Its more efficient because you can start snendning data on another line without waiting for recived call. A program can execute several task at the same time. So if the CPU has free capacity other part of the program can use this resource while executing the task. Can also share the cache and make the program run faster.
+Its more efficient because you can start sendning data on another line without waiting for received call. A program can execute several task at the same time. So if the CPU has free capacity other part of the program can use this resource while executing the task. Can also share the cache and make the program run faster.
+
+Process: OS-managed, inside its own adresse space.
+Thread: Os-managed, same adresse space as its parents and its all other treads.
+Green Thread: user space projection, not OS-managed but scheduled by a virtual machine.
+Fibers: Os-managed, exactly threads, cooperative mutlitasking.
