@@ -1,0 +1,3 @@
+3.)
+concurrent execution (mutlithreaded/multiprocessing):
+Its more efficient because you can start snendning data on another line without waiting for recived call. A program can execute several task at the same time. So if the CPU has free capacity other part of the program can use this resource while executing the task. Can also share the cache and make the program run faster.
