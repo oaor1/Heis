@@ -13,7 +13,7 @@ pthread_create(): Creates a new thread within a process, where the single mask i
 
 threading.Thread(): A class that represents a thread controll. Activivity is ran in a separate thread controll, need some sort of constructor. And you need to manage running and stopping data flow.
 
-go: ?
+go: executes sevral routines asynchronnously in separate grooviness. Executes the grooviness concurrently.
 
 —
 
