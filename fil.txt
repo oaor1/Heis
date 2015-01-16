@@ -25,4 +25,5 @@ func GOMAXPROCS(n int) int changes the numer of operating system threads that ca
 
 —————————
 
+Min endring - Ola
 
