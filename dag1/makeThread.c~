@@ -1,0 +1,36 @@
+//gcc -std=gnu99 -Wall -g -o makeThread makeThread.c -lpthread
+
+#include <pthread.h>
+#include <stdio.h>
+
+
+void* someThreadFunction1(){
+	int i = 0;
+	while (i < 1000000){
+		i++;
+	}
+	printf ("aids\n");
+	return NULL;
+}
+
+void* someThreadFunction2(){
+	int i = 0;
+	while (i < 100){
+		i++;
+	}
+	printf ("er sunt\n");
+	return NULL;
+}
+
+int main(){
+	pthread_t someThread1;
+	pthread_t someThread2;
+	pthread_create(&someThread1, NULL, someThreadFunction1, NULL);
+	// Arguments to a thread would be passed here ---------^
+	pthread_create(&someThread2, NULL, someThreadFunction2, NULL);
+
+	pthread_join(someThread1, NULL);
+	pthread_join(someThread2, NULL);
+	printf ("ferdig!\n");
+	return 0;
+}

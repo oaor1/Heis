@@ -1,0 +1,31 @@
+3.)
+concurrent execution (mulithreaded/multiprocessing):
+Its more efficient because you can start sendning data on another line without waiting for received call. A program can execute several task at the same time. So if the CPU has free capacity other part of the program can use this resource while executing the task. Can also share the cache and make the program run faster.
+
+Process: OS-managed, inside its own adresse space.
+Thread: Os-managed, same adresse space as its parents and its all other treads.
+Green Thread: user space projection, not OS-managed but scheduled by a virtual machine.
+Fibers: Os-managed, exactly threads, cooperative mulitasking.
+
+——————————
+
+pthread_create(): Creates a new thread within a process, where the single mask is inherited from the creating thread. The pending signals set is empty. Retruns zero if sucsessfull.
+
+threading.Thread(): A class that represents a thread controll. Activivity is ran in a separate thread controll, need some sort of constructor. And you need to manage running and stopping data flow.
+
+go: executes sevral routines asynchronnously in separate grooviness. Executes the grooviness concurrently.
+
+—
+
+The GIL prevents Python from executing multiple threads to be executed bytecodes at the same time. This because Python the memory management is not safe. This means that you not can take ful advantage of a multiprocessor system.
+
+-
+
+func GOMAXPROCS(n int) int changes the numer of operating system threads that can be executed by go simultaneously.
+
+—————————
+
+
+trolololololol
+
+
