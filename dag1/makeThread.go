@@ -1,4 +1,4 @@
-// go run helloworld_go.go
+// go run makeThread.go
 
 package main
 
@@ -11,18 +11,14 @@ import (
 var i int = 0
 
 func someGoroutine1() {
-	x := 0
-	if x < 1000000{
-	i++
-	x++
+	for j :=0; j < 1000000; j++{
+		i++
 	}
 }
 
 func someGoroutine2() {	
-	y := 0
-	if y < 1000000{
-	i--
-	y++
+		for j :=0; j < 1000000; j++{
+		i--
 	}
 }
 

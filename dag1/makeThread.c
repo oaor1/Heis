@@ -6,19 +6,17 @@
 
 void* someThreadFunction1(){
 	int i = 0;
-	while (i < 1000000){
+	for (int j=0; j <10000000; j++){
 		i++;
 	}
-	printf ("aids\n");
 	return NULL;
 }
 
 void* someThreadFunction2(){
 	int i = 0;
-	while (i < 1000000){
-		i++;
+	for (int j=0; j <10000000; j++){
+		i--;
 	}
-	printf ("er sunt\n");
 	return NULL;
 }
 
@@ -31,6 +29,6 @@ int main(){
 
 	pthread_join(someThread1, NULL);
 	pthread_join(someThread2, NULL);
-	printf ("ferdig!\n");
+	printf("tull og toys");
 	return 0;
 }

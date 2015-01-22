@@ -4,15 +4,13 @@ i = 0
 
 def someThreadFunction1():
 	global i	
-	while i<1000000:
+	for x in range(1000000):
 		i+=1
-	print ("first\n")
 
 def someThreadFunction2():
 	global i	
-	while i<1000000:
-		i+=1
-	print ("second\n")
+	for x in range(1000000):
+		i-=1
 
 
 def main():
@@ -23,6 +21,6 @@ def main():
 
 	someThread1.join()
 	someThread2.join()
-	print("ferdig!\n")
+	print (i)
 
 main()
