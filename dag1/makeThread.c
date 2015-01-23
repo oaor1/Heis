@@ -3,9 +3,8 @@
 #include <pthread.h>
 #include <stdio.h>
 
-
+int i = 0;
 void* someThreadFunction1(){
-	int i = 0;
 	for (int j=0; j <10000000; j++){
 		i++;
 	}
@@ -13,7 +12,6 @@ void* someThreadFunction1(){
 }
 
 void* someThreadFunction2(){
-	int i = 0;
 	for (int j=0; j <10000000; j++){
 		i--;
 	}
@@ -29,6 +27,6 @@ int main(){
 
 	pthread_join(someThread1, NULL);
 	pthread_join(someThread2, NULL);
-	printf("tull og toys");
+	printf(i);
 	return 0;
 }
