@@ -1,4 +1,8 @@
+//run go [filename.go]
+//fuser -k -n protocol portno
+//sambaad-sindrevh/sanntid/heis/dag3
 package main
+
 
 import (
 	"net"
@@ -14,7 +18,7 @@ func recive(port string){
 
 	
 
-	time.Sleep(100 * time.Millisecond)
+	//time.Sleep(100 * time.Millisecond)
 		
     udpAddress, err := net.ResolveUDPAddr("udp4",port)
 	if err != nil{
@@ -23,6 +27,7 @@ func recive(port string){
 	}
 
 	sock, err := net.ListenUDP("udp", udpAddress)
+	defer sock.Close()
 	if err != nil{
 		fmt.Println("ListenUDP failed \n", err, "\n")
 		return		
@@ -32,10 +37,10 @@ func recive(port string){
 	for {
 		rlen,adresse,err := sock.ReadFromUDP(buf[:])
 		if err != nil{
-			fmt.Println("ReadFromUDP failed, not able to recive from", adresse, "\n")
+			fmt.Println("ReadFromUDP failed, not able to recive from\n")
 			return
 		}
-		fmt.Println("Recived ", rlen, " bytes from " ,adresse,"\n")
+		fmt.Println("Recived ", rlen, " bytes from",adresse," \n")
 		fmt.Println(string(buf[:]))
 				
 	}	
@@ -48,6 +53,7 @@ func send(port string){
 		return
 	}
 	sendSock, err := net.DialUDP("udp", nil, serverAddress)
+	defer sendSock.Close()
 	if err != nil{
 		fmt.Println("DialUDP failed \n", err, "\n")
 		return
@@ -60,7 +66,7 @@ func send(port string){
 			fmt.Println("WriteToUDP failed", err, "\n")
 			return
 		}
-		time.Sleep(2*time.Second)
+		time.Sleep(1*time.Second)
 		if n==2{
 
 		}
@@ -69,10 +75,16 @@ func send(port string){
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-    port := "129.241.187.255:30000"
+	
+	recivePort := "129.241.187.255:20013"
+	sendPort := "129.241.187.136:20013"
+	
 
-	recive(port)
-	send(port)
+	//recive(recivePort)
+	go send(sendPort)
+	go recive(recivePort)
+
+	time.Sleep(3*time.Second)
 }
 
 

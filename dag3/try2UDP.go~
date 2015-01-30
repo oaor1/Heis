@@ -4,6 +4,7 @@ import (
 	"net"
 	"fmt"
 	"time"
+	"runtime"
 	//"strconv"
 
 )
@@ -15,7 +16,7 @@ func recive(port string){
 
 	time.Sleep(100 * time.Millisecond)
 		
-        udpAddress, err := net.ResolveUDPAddr("udp4",port)
+    udpAddress, err := net.ResolveUDPAddr("udp4",port)
 	if err != nil{
 		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
 		return
@@ -26,7 +27,7 @@ func recive(port string){
 		fmt.Println("ListenUDP failed \n", err, "\n")
 		return		
 	}
-	sock.Close()
+	
 
 	for {
 		rlen,adresse,err := sock.ReadFromUDP(buf[:])
@@ -40,11 +41,38 @@ func recive(port string){
 	}	
 }
 
-func main() {
+func send(port string){
+	serverAddress, err := net.ResolveUDPAddr("udp4",port)
+	if err != nil{
+		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
+		return
+	}
+	sendSock, err := net.DialUDP("udp", nil, serverAddress)
+	if err != nil{
+		fmt.Println("DialUDP failed \n", err, "\n")
+		return
+	}
+	fmt.Println(serverAddress, "\n")
 
-        port := "129.241.187.255:30000"
+	for{
+		n,err := sendSock.Write([]byte("jadda!\n"))
+		if err!= nil{
+			fmt.Println("WriteToUDP failed", err, "\n")
+			return
+		}
+		time.Sleep(2*time.Second)
+		if n==2{
+
+		}
+	}
+}
+
+func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+    port := "129.241.187.255:30000"
 
 	recive(port)
+	send(port)
 }
 
 
