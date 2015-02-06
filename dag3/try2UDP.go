@@ -76,8 +76,8 @@ func send(port string){
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	
-	recivePort := "129.241.187.255:20013"
-	sendPort := "129.241.187.136:20013"
+	recivePort := "78.91.50.171:20013"
+	sendPort := "78.91.50.171:20013"
 	
 
 	//recive(recivePort)
