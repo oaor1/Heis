@@ -16,7 +16,7 @@ const (
 	CONN_REC = "35654"
 	CONN_type = "tcp4"
 	CONN_IP = "129.241.187.136"
-	MY_IP = "129.241.187.148"
+	MY_IP = "129.241.187.161"
 )
 
 var laddr *net.UDPAddr
