@@ -62,11 +62,11 @@ func send(port string){
 		fmt.Println("Dialtcp failed \n", err, "\n")
 		return
 	}
-	fmt.Println(serverAddress, "4564654654654654\n")
+	fmt.Println(serverAddress)
 
 	for{
 		var buf []byte = make([]byte, 1024)
-		message := "This is what i said" 
+		message := "This is what i said\n" 
 		copy(buf[:],message)
 		_,err := sendtcpListener.Write(buf)
 		if err!= nil{

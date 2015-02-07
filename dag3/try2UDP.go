@@ -63,7 +63,7 @@ func send(port string){
 	for{
 		n,err := sendSock.Write([]byte("jadda!\n"))
 		if err!= nil{
-			fmt.Println("WriteToUDP failed", err, "\n")
+			fmt.Println("WriteToUDP failed, ", err, "\n")
 			return
 		}
 		time.Sleep(1*time.Second)
@@ -75,9 +75,9 @@ func send(port string){
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	
-	recivePort := "78.91.50.171:20013"
-	sendPort := "78.91.50.171:20013"
+
+	recivePort := "129.241.187.255:20015"
+	sendPort := "129.241.187.136:20015"
 	
 
 	//recive(recivePort)
