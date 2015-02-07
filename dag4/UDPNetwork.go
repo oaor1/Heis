@@ -12,14 +12,13 @@ const (
 	CONN_PORT = "20008"
 	CONN_REC = "20010"
 	CONN_type = "udp"
-	CONN_IP = "129.241.187.136"
+	CONN_IP = "129.241.187.255"
 	MY_IP = "129.241.187.161"
 )
 
-func send(){
-	Socket , _ := net.Dial(CONN_type, CONN_IP+":"+CONN_PORT)
+func send(Socket net.Conn){
 	var buffer []byte = make([]byte, 256)
-	copy(buffer[:], "test")
+	copy(buffer[:], "tester ")
 //	ln , _ := net.Listen(CONN_type,":"+CONN_REC)
 
 	for{
@@ -36,12 +35,11 @@ func send(){
 }
 
 func recive(){
-	Socket , _ := net.Dial(CONN_type, CONN_IP+":"+CONN_PORT)
+	Socket , _ := net.Listen(CONN_type, CONN_IP+":"+CONN_PORT)
 	for{
-		fmt.Printf("tar i mot\n")
+		fmt.Printf("tar i moooooooooooot\n")
 		var buffer []byte = make([]byte, 256)
-						fmt.Printf("tar i mot\n")
-		Socket.Read(buffer[:])
+		Socket.ReadFromUDP(buffer[:])
 				fmt.Printf("tar i mot\n")
 		fmt.Printf("%s\n", buffer)
 		time.Sleep(1*time.Second)
@@ -50,9 +48,13 @@ func recive(){
 //var laddr *net.UDPAddr
 
 func main() {
+
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
-	go send()
+	sendSocket , _ := net.Dial(CONN_type, CONN_IP+":"+CONN_PORT)
+	reciveSocket , _ := net.Dial(CONN_type, CONN_IP+":"+CONN_PORT)
+
+	go send(sendSocket)
 	go recive()
 
 	time.Sleep(10*time.Second)
