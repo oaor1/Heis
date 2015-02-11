@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"time"
 	"runtime"
-	"encoding/json"
+//	"encoding/json"
 	
 )
 
 const ( 
-	CONN_PORT = "20008"
+	CONN_PORT = "30564"
 	CONN_REC = "20008"
 	CONN_type = "udp"
 	CONN_IP = "129.241.187.255"
-	MY_IP = "129.241.187.161"
+	MY_IP = "129.241.187.108"
 	LOCAL_IP = "127.0.0.1"
 )
 /*
@@ -27,7 +27,7 @@ type orderList struct{
 func recive(){
 	var buffer []byte = make([]byte, 256)
 		
-    udpAddress, err := net.ResolveUDPAddr(CONN_type, LOCAL_IP+":"+CONN_REC)
+    udpAddress, err := net.ResolveUDPAddr(CONN_type, CONN_IP+":"+CONN_PORT)
 	if err != nil{
 		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
 		return
@@ -53,7 +53,7 @@ func recive(){
 }
 
 func send(){
-	serverAddress, err := net.ResolveUDPAddr(CONN_type,LOCAL_IP+":"+CONN_PORT)
+	serverAddress, err := net.ResolveUDPAddr(CONN_type, CONN_IP+":"+CONN_PORT)
 	if err != nil{
 		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
 		return
