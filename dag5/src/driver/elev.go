@@ -1,2 +1,212 @@
+///run/user/11408/gvfs/smb-share:server=sambaad.stud.ntnu.no,share=sindrevh/sanntid/heis
+
 package driver
 
+import(
+	"fmt"
+
+const (
+	N_FLOORS = 4
+	N_BUTTONS = 3
+
+	DIRN_DOWN = -1
+	DIRN_STOP = 0
+	DIRN_UP = 1
+
+	BUTTON_CALL_UP = 0
+    BUTTON_CALL_DOWN = 1
+    BUTTON_COMMAND = 2
+)
+
+var lamp_channel_matrix int [N_FLOORS][N_BUTTONS] = {
+    {LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
+    {LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
+    {LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
+    {LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
+}
+
+var button_channel_matrix int [N_FLOORS][N_BUTTONS] = {
+    {BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
+    {BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
+    {BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
+    {BUTTON_UP4, BUTTON_DOWN4, BUTTON_COMMAND4},
+}
+
+/**
+  Initialize elevator.
+  @return Non-zero on success, 0 on failure.
+*/
+func Elev_init() int{
+	if Io_init() != 0 {
+		fmt.Printf("Heisen er initialsiert.\n")
+	}
+
+	//Slukker alle lamper under initialsiering
+	for i := 0; i < N_FLOORS; i++ {
+		if i != 0{
+			elev_set_buttonlmp(BUTTON_CALL_DOWN, i , 0)
+		}
+		if i != N_FLOORS - 1{
+			elev_set_button_lamp(BUTTON_CALL_UP, i ,0)
+		}
+		elev_set_button_lamp(BUTTON_COMMAN, i, 0)
+	}
+	elev_set_stop_lamp(0)
+	elev_set_door_open_lamp(0)
+	elev_set_floor_idicator(0)
+}
+
+/**
+  Sets the motor direction of the elevator.
+  @param dirn New direction of the elevator.
+*/
+func elev_set_motor_direction(dir int){
+	if dir == 0{
+        io_write_analog(MOTOR, 0)
+    } else if dir > 0 {
+        io_clear_bit(MOTORDIR)
+        io_write_analog(MOTOR, 2800)
+    } else if dir < 0 {
+        io_set_bit(MOTORDIR)
+        io_write_analog(MOTOR, 2800)
+    }
+}
+
+/**
+  Turn door-open lamp on or off.
+  @param value Non-zero value turns lamp on, 0 turns lamp off.
+*/
+func elev_set_door_open_lamp(value int){
+	if value{
+        io_set_bit(LIGHT_DOOR_OPEN)
+    }
+    else{
+        io_clear_bit(LIGHT_DOOR_OPEN)
+    }
+}
+
+/**
+  Get signal from obstruction switch.
+  @return 1 if obstruction is enabled. 0 if not.
+*/
+func elev_get_obstruction_signal() int {
+    return io_read_bit(OBSTRUCTION)
+}
+
+/**
+  Get signal from stop button.
+  @return 1 if stop button is pushed, 0 if not.
+*/
+func elev_get_stop_signal() int {
+    return io_read_bit(STOP)
+}
+
+
+/**
+  Turn stop lamp on or off.
+  @param value Non-zero value turns lamp on, 0 turns lamp off.
+*/
+func elev_set_stop_lamp(value int) {
+    if value{
+        io_set_bit(LIGHT_STOP)
+    }
+    else{
+        io_clear_bit(LIGHT_STOP)
+    }
+}
+
+
+/**
+  Get floor sensor signal.
+  @return -1 if elevator is not on a floor. 0-3 if elevator is on floor. 0 is
+    ground floor, 3 is top floor.
+*/
+func elev_get_floor_sensor_signal() int{
+    if io_read_bit(SENSOR_FLOOR1){}
+        return 0
+    }
+    else if io_read_bit(SENSOR_FLOOR2){
+        return 1
+    }
+    else if io_read_bit(SENSOR_FLOOR3){
+        return 2
+    }
+    else if io_read_bit(SENSOR_FLOOR4){
+        return 3
+    }
+    else{
+        return -1
+    }
+}
+
+
+// 2 bit representerer 4 indikatorer.
+/**
+  Set floor indicator lamp for a given floor.
+  @param floor Which floor lamp to turn on. Other floor lamps are turned off.
+*/
+func elev_set_floor_indicator(floor int) {
+
+	if 0 <= floor < N_FLOORS {
+		if floor & 0x02{
+			io_set_bit(LIGHT_FLOOR_IND1)
+		}
+		else{
+			io_clear_bit(LIGHT_FLOOR_IND1)
+		}
+
+		if floor & 0x01{
+			io_set_bit(LIGHT_FLOOR_IND1)
+		}
+		else{
+			io_clear_bit(LIGHT_FLOOR_IND1)
+		}
+	}
+	else{
+		fmt.Printf("input floor is out of range!\n")
+	}
+}
+
+/**
+  Gets a button signal.
+  @param button Which button type to check. Can be BUTTON_CALL_UP,
+    BUTTON_CALL_DOWN or BUTTON_COMMAND (button "inside the elevator).
+  @param floor Which floor to check button. Must be 0-3.
+  @return 0 if button is not pushed. 1 if button is pushed.
+*/
+func elev_get_button_signal(button int, floor int) int {
+    
+	if 0 <= floor < N_FLOORS {
+		if io_read_bit(button_channel_matrix[floor][button]){
+        return 1
+    	}
+ 		else{
+        return 0
+    	}
+	}
+	else{
+		fmt.Printf("input floor is out of range!\n")
+	}
+}
+
+
+/**
+  Set a button lamp.
+  @param lamp Which type of lamp to set. Can be BUTTON_CALL_UP,
+    BUTTON_CALL_DOWN or BUTTON_COMMAND (button "inside" the elevator).
+  @param floor Floor of lamp to set. Must be 0-3
+  @param value Non-zero value turns lamp on, 0 turns lamp off.
+*/
+void elev_set_button_lamp(elev_button_type_t button, int floor, int value) {
+	if 0 <= floor < N_FLOORS {
+		if value{
+    	   io_set_bit(lamp_channel_matrix[floor][button])
+    	}
+    	else{
+        	io_clear_bit(lamp_channel_matrix[floor][button])
+		}
+
+	else{
+		fmt.Printf("input floor is out of range!\n")
+	}
+}

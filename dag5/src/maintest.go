@@ -1,5 +1,5 @@
 //export GOPATH=$(pwd)
-// go install driver
+//go install driver
 
 package main
 
