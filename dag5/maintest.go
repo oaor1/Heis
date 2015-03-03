@@ -4,7 +4,7 @@
 package main
 
 import(
-	"../driver"
+	"driver"
 )
 
-go Elev_init()
+go io_init()

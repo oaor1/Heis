@@ -43,7 +43,7 @@ func Io_write_analog(channel int, value int){
   @param channel Channel to read from.
   @return Value read.
 */
-func Io_read_bit(channel int) int{
+func Io_read_bit(channel int) int { //return type var int, men comiler klaget
 	return int(C.io_read_bit(C.int(channel)))
 }
 
@@ -52,6 +52,6 @@ func Io_read_bit(channel int) int{
   @param channel Channel to read from.
   @return Value read.
 */
-func Io_read_analog(channel int) int{
+func Io_read_analog(channel int) int { //return type var int, men comiler klaget
 	return int(C.io_read_analog(C.int(channel)))
 }

@@ -15,18 +15,18 @@ const (
 	DIRN_UP = 1
 
 	BUTTON_CALL_UP = 0
-    BUTTON_CALL_DOWN = 1
-    BUTTON_COMMAND = 2
+  BUTTON_CALL_DOWN = 1
+  BUTTON_COMMAND = 2
 )
 
-var lamp_channel_matrix int [N_FLOORS][N_BUTTONS] := {
+var lamp_channel_matrix = [N_FLOORS][N_BUTTONS]int{
     {LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
     {LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
     {LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
     {LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
 }
 
-var button_channel_matrix int [N_FLOORS][N_BUTTONS] := {
+var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
     {BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
     {BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
     {BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
@@ -45,16 +45,18 @@ func Elev_init() int{
 	//Slukker alle lamper under initialsiering
 	for i := 0; i < N_FLOORS; i++ {
 		if i != 0{
-			elev_set_buttonlmp(BUTTON_CALL_DOWN, i , 0)
+			elev_set_button_lamp(BUTTON_CALL_DOWN, i , 0)
 		}
 		if i != N_FLOORS - 1{
 			elev_set_button_lamp(BUTTON_CALL_UP, i ,0)
 		}
-		elev_set_button_lamp(BUTTON_COMMAN, i, 0)
+		elev_set_button_lamp(BUTTON_COMMAND, i, 0)
 	}
 	elev_set_stop_lamp(0)
 	elev_set_door_open_lamp(0)
-	elev_set_floor_idicator(0)
+	elev_set_floor_indicator(0)
+
+  return 1 //finished initialization
 }
 
 /**
@@ -63,14 +65,14 @@ func Elev_init() int{
 */
 func elev_set_motor_direction(dir int){
 	if dir == 0{
-        io_write_analog(MOTOR, 0)
-    } else if dir > 0 {
-        io_clear_bit(MOTORDIR)
-        io_write_analog(MOTOR, 2800)
-    } else if dir < 0 {
-        io_set_bit(MOTORDIR)
-        io_write_analog(MOTOR, 2800)
-    }
+    Io_write_analog(MOTOR, 0)
+  } else if dir > 0 {
+    Io_clear_bit(MOTORDIR)
+    Io_write_analog(MOTOR, 2800)
+  } else if dir < 0 {
+    Io_set_bit(MOTORDIR)
+    Io_write_analog(MOTOR, 2800)
+  }
 }
 
 /**
@@ -79,10 +81,9 @@ func elev_set_motor_direction(dir int){
 */
 func elev_set_door_open_lamp(value int){
 	if value{
-        io_set_bit(LIGHT_DOOR_OPEN)
-    }
-    else{
-        io_clear_bit(LIGHT_DOOR_OPEN)
+        Io_set_bit(LIGHT_DOOR_OPEN)
+    } else {
+        Io_clear_bit(LIGHT_DOOR_OPEN)
     }
 }
 
@@ -91,7 +92,7 @@ func elev_set_door_open_lamp(value int){
   @return 1 if obstruction is enabled. 0 if not.
 */
 func elev_get_obstruction_signal() int {
-    return io_read_bit(OBSTRUCTION)
+    return Io_read_bit(OBSTRUCTION)
 }
 
 /**
@@ -99,7 +100,7 @@ func elev_get_obstruction_signal() int {
   @return 1 if stop button is pushed, 0 if not.
 */
 func elev_get_stop_signal() int {
-    return io_read_bit(STOP)
+    return Io_read_bit(STOP)
 }
 
 
@@ -109,10 +110,9 @@ func elev_get_stop_signal() int {
 */
 func elev_set_stop_lamp(value int) {
     if value{
-        io_set_bit(LIGHT_STOP)
-    }
-    else{
-        io_clear_bit(LIGHT_STOP)
+        Io_set_bit(LIGHT_STOP)
+    } else {
+        Io_clear_bit(LIGHT_STOP)
     }
 }
 
@@ -123,19 +123,15 @@ func elev_set_stop_lamp(value int) {
     ground floor, 3 is top floor.
 */
 func elev_get_floor_sensor_signal() int{
-    if io_read_bit(SENSOR_FLOOR1){}
+    if Io_read_bit(SENSOR_FLOOR1){
         return 0
-    }
-    else if io_read_bit(SENSOR_FLOOR2){
+    } else if Io_read_bit(SENSOR_FLOOR2){
         return 1
-    }
-    else if io_read_bit(SENSOR_FLOOR3){
+    } else if Io_read_bit(SENSOR_FLOOR3){
         return 2
-    }
-    else if io_read_bit(SENSOR_FLOOR4){
+    } else if Io_read_bit(SENSOR_FLOOR4){
         return 3
-    }
-    else{
+    } else {
         return -1
     }
 }
@@ -150,20 +146,17 @@ func elev_set_floor_indicator(floor int) {
 
 	if 0 <= floor < N_FLOORS {
 		if floor & 0x02{
-			io_set_bit(LIGHT_FLOOR_IND1)
-		}
-		else{
-			io_clear_bit(LIGHT_FLOOR_IND1)
+			Io_set_bit(LIGHT_FLOOR_IND1)
+		} else {
+			Io_clear_bit(LIGHT_FLOOR_IND1)
 		}
 
 		if floor & 0x01{
-			io_set_bit(LIGHT_FLOOR_IND1)
+			Io_set_bit(LIGHT_FLOOR_IND1)
+		} else {
+			Io_clear_bit(LIGHT_FLOOR_IND1)
 		}
-		else{
-			io_clear_bit(LIGHT_FLOOR_IND1)
-		}
-	}
-	else{
+	} else {
 		fmt.Printf("input floor is out of range!\n")
 	}
 }
@@ -178,14 +171,12 @@ func elev_set_floor_indicator(floor int) {
 func elev_get_button_signal(button int, floor int) int {
     
 	if 0 <= floor < N_FLOORS {
-		if io_read_bit(button_channel_matrix[floor][button]){
-        return 1
-    	}
- 		else{
-        return 0
-    	}
-	}
-	else{
+		if Io_read_bit(button_channel_matrix[floor][button]){
+      return 1
+    } else {
+      return 0
+    }
+	} else {
 		fmt.Printf("input floor is out of range!\n")
 	}
 }
@@ -198,16 +189,14 @@ func elev_get_button_signal(button int, floor int) int {
   @param floor Floor of lamp to set. Must be 0-3
   @param value Non-zero value turns lamp on, 0 turns lamp off.
 */
-void elev_set_button_lamp(elev_button_type_t button, int floor, int value) {
+func elev_set_button_lamp(elev_button_type_t button, floor int, value int) {
 	if 0 <= floor < N_FLOORS {
 		if value{
-    	   io_set_bit(lamp_channel_matrix[floor][button])
-    	}
-    	else{
-        	io_clear_bit(lamp_channel_matrix[floor][button])
+    	Io_set_bit(lamp_channel_matrix[floor][button])
+    } else {
+      Io_clear_bit(lamp_channel_matrix[floor][button])
 		}
-
-	else{
+  } else {
 		fmt.Printf("input floor is out of range!\n")
 	}
 }
