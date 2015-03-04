@@ -1,3 +1,5 @@
+#chmod +x ./install.sh
+
 #!/bin/bash
 export GOPATH=$(pwd)
 #mkdir $GOPATH
