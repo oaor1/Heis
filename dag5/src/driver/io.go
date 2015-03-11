@@ -9,8 +9,8 @@ import "C"
   Initialize libComedi in "Sanntidssalen"
   @return Non-zero on success and 0 on failure
 */
-func Io_init() bool{
-	return bool (int(C.io_init()) != 1)
+func Io_init() int{
+	return int (int(C.io_init()))
 }
 
 /**

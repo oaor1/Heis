@@ -4,7 +4,23 @@
 package main
 
 import(
-	"driver"
+	"time"
+	."../driver"
 )
 
-go io_init()
+Elev_init()
+
+
+
+for{
+	driver.Elev_set_motor_direction(1)
+
+	time.Sleep(2*time.Second)
+
+	Set_door_open_lamp(1)
+
+	Elev_set_motor_direction(-1)
+
+	time.Sleep(2*time.Second)
+}
+
