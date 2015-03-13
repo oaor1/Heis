@@ -3,12 +3,16 @@
 package driver
 
 import(
+  "../init"
 	"fmt"
 )
 
 const (
+  /*
+  MAX_N_ELEVATORS = 10
 	N_FLOORS = 4
 	N_BUTTONS = 3
+  */
 
 	DIRN_DOWN = -1
 	DIRN_STOP = 0
@@ -39,7 +43,7 @@ var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 */
 func Elev_init() int{
 	if Io_init() != 0 {
-		fmt.Printf("Heisen er initialsiert.\n")
+		fmt.Printf("The elevator is initialized.\n")
 	}
 
 	//Slukker alle lamper under initialsiering
@@ -144,22 +148,29 @@ func Elev_get_floor_sensor_signal() int{
 */
 func Elev_set_floor_indicator(floor int) {
 
-	if 0 <= floor && floor < N_FLOORS {
-		if floor & 0x02 != 0{
-			Io_set_bit(LIGHT_FLOOR_IND1)
-		} else {
-			Io_clear_bit(LIGHT_FLOOR_IND1)
-		}
+  if 0 <= floor && floor < N_FLOORS {
+    if floor == 0{
+      Io_clear_bit(LIGHT_FLOOR_IND1)
+      Io_clear_bit(LIGHT_FLOOR_IND2)
+    }
 
-		if floor & 0x01 != 0{
-			Io_set_bit(LIGHT_FLOOR_IND1)
-		} else {
-			Io_clear_bit(LIGHT_FLOOR_IND1)
-		}
-	} else {
-		fmt.Printf("input floor is out of range!\n")
-	}
+     if floor == 1{
+      Io_set_bit(LIGHT_FLOOR_IND2)
+      Io_clear_bit(LIGHT_FLOOR_IND1)
+    }
+     if floor == 2{
+      Io_set_bit(LIGHT_FLOOR_IND1)
+      Io_clear_bit(LIGHT_FLOOR_IND2)
+    }
+     if floor == 3{
+      Io_set_bit(LIGHT_FLOOR_IND1)
+      Io_set_bit(LIGHT_FLOOR_IND2)
+    }
+  } else {
+    fmt.Printf("input floor is out of range!\n")
+  }
 }
+
 
 /**
   Gets a button signal.
