@@ -80,3 +80,6 @@ func send(inputStruct testStruct){
 		time.Sleep(1*time.Second)
 	}
 }
+
+//Vi må sjekke timestamp på alt som gjøres, for å være sikker på at det er siste versjon
+//for å unngå å overskrive esensiell data.
