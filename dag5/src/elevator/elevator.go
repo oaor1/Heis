@@ -16,13 +16,17 @@ const(
 )
 
 var(
+	//for comunication with manager
+	Next_floorCh = make(chan int)
+	Current_floorCh = make (chan int)
+	current_floor int
 	//Setter opp kananler
-	doorTimerStartCh = make(chan bool)
-	doorTimerStoppCh = make(chan bool)
-	idleCh = make(chan bool)
-	openCh = make(chan bool)
-	upCh = make(chan bool)
-	downCh = make(chan bool)
+	doorTimerStartCh = make(chan int) //as bool
+	doorTimerStoppCh = make(chan int) //as bool
+	idleCh = make(chan int) //as bool
+	openCh = make(chan int) //as bool
+	upCh = make(chan int) //as bool
+	downCh = make(chan int) //as bool
 	//osChan = chan os.Signal
 )
 

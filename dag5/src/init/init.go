@@ -3,7 +3,6 @@ package init
 import(
 	"fmt"
 	"../driver"
-
 )
 
 const(
@@ -17,10 +16,17 @@ const(
 type(
 
 	System_data struct{
-		IP_list				[] 		string
+		IP_list				[] 		string		//
 		M_internal_elev_out	[][]	int
-		M_auction_q			[][]	int
+		M_UpAuction_q		[][]	int
+		M_DownAuction_q		[][]	int
 		M_handle_q			[][]	int
+	}
+
+	Auction_data struct{
+		bid int
+		Auction_object [] int // [up/down, element i lista]
+
 	}
 
 func init(){
