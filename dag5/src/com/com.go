@@ -18,10 +18,10 @@ const (
 var (
 //Oppretter globale chanels for å komunisere med manager
 System_data_sendToManagerCh = make(chan init.System_data)
-System_data_recivefromManagerCh = make(chan init.System_data)
+System_data_sendToComCh = make(chan init.System_data)
 
 Auction_bid_sendToManagerCh = make(chan init.Auction_data)
-Auction_bid_reciveFromManagerCh = make(chan init.Auction_data)
+Auction_bid_sendToComCh = make(chan init.Auction_data)
 )
 
 func recive(){
