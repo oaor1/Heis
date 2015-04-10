@@ -24,9 +24,9 @@ var(
 	doorTimerStartCh = make(chan int) //as bool
 	doorTimerStoppCh = make(chan int) //as bool
 	idleCh = make(chan int) //as bool
-	openCh = make(chan int) //as bool
-	upCh = make(chan int) //as bool
-	downCh = make(chan int) //as bool
+	openDoorCh = make(chan int) //as bool
+	elevUpCh = make(chan int) //as bool
+	elevDownCh = make(chan int) //as bool
 	//osChan = chan os.Signal
 )
 

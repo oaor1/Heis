@@ -21,6 +21,14 @@ import (
 	"time"
 )
 
+var(
+	System_data init.System_data
+	timeOutAuctionCh = make (chan bool)
+)
+func timeOutAuction(){
+	time.Sleep(40*time.Millisecond)
+	timeOutAuctionCh <- false
+}
 /*
 //go rutine for å ta i mot nye ordre i sys_dat
 func recive_system_data_from_com(){
@@ -37,6 +45,11 @@ func send_system_data_to_com(updated_system_data init.System_data){
 //go rutine for å sende bud
 func send_Auction_data_to_com(bid_offer init.Auction_data){
 	Auction_bid_sendToComCh <- bid_offer
+}
+
+//go rutine for å sende updated system data
+func send_System_data_update_to_com(system_data_update init.Auction_data){
+	Update_system_data_sendToComCh <- system_data_update
 }
 
 /*
@@ -57,15 +70,38 @@ func manage_incomming_data(){
 	for{
 		select{
 		case new_system_data := <- System_data_sendToManagerCh:
+			fmt.printf ("Mottar system data fra com til Manager\n")
 			// mottok systemdata fra com
+			System_data = new_system_data
 			// gjør noe fornuftig
-		case new_auction_data :=  <- System_data_sendToManagerCh:
+		case New_auction_data :=  <- System_data_sendToManagerCh:
+			fmt.printf ("Mottar auction data fra com til Manager\n")
 			// mottok auksjonsdata fra com
-			// vurder inkommet bud mot eget bud
+			// vurderer inkommet bud mot eget bud, ekstern funksjon.
+
+		case New_system_data_update := <- Update_System_data_sendToManagerCh:
+			fmt.printf ("Mottar update til systemdata fra com til Manager\n")
+			//mottok en oppdatering som skal legges til/slettes i system data
+			
 		}
 	}
 }
 
+func Auction_round(auction_object init.Auction_data) bool{
+	local_bid = calculate_cost(System_data, New_auction_data)
+	local_best_bid bool = true
+	if local_bid < New_auction_data.bid{
+		New_auction_data.bid = local_bid
+		send_Auction_data_to_com(New_auction_data)
+	}
+	else if local_bid == New_auction_data.bid && new_auction_data.elevator_number < Local_elevator_number
+		local_best_bid = false
+	}
+	else{
+		local_best_bid = false
+	} 
+	return local_best_bid
+}
 
 //dette er overflødig:
 func manage_outgoing_data(){

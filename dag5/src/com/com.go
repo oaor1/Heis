@@ -22,6 +22,10 @@ System_data_sendToComCh = make(chan init.System_data)
 
 Auction_bid_sendToManagerCh = make(chan init.Auction_data)
 Auction_bid_sendToComCh = make(chan init.Auction_data)
+
+Update_system_data_sendToManagerCh = make (chan init.Update_system_data)
+Update_system_data_sendToComCh = make (chan init.Update_system_data)
+
 )
 
 func recive(){
