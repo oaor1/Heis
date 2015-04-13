@@ -154,17 +154,20 @@ func Elev_set_floor_indicator(floor int) {
       Io_clear_bit(LIGHT_FLOOR_IND2)
     }
 
-     if floor == 1{
+    if floor == 1{
       Io_set_bit(LIGHT_FLOOR_IND2)
       Io_clear_bit(LIGHT_FLOOR_IND1)
     }
-     if floor == 2{
+    if floor == 2{
       Io_set_bit(LIGHT_FLOOR_IND1)
       Io_clear_bit(LIGHT_FLOOR_IND2)
     }
-     if floor == 3{
+    if floor == 3{
       Io_set_bit(LIGHT_FLOOR_IND1)
       Io_set_bit(LIGHT_FLOOR_IND2)
+    }
+    if floor == -1{
+      //elevator not in a floor
     }
   } else {
     fmt.Printf("input floor is out of range!\n")
