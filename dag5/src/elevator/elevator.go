@@ -80,24 +80,25 @@ func Idle(){
 		driver.Elev_set_motor_direction(0)
 		for{
 			time.Sleep(10*time.Millisecond)
-			if {//er etasjen i ordre kø
-				//set OpenDoorCh true
+			if Elev_get_floor_sensor_signal() == local_elevator_que[0]{// 0 indesksert
+				OpenDoorCh <- true
+				current_floor = Elev_get_floor_sensor_signal()
+				Current_floorCh <- current_floor//Det under kan evt gjøres via denne kanalen
+				//slett bestilling og flytt de andre elemntene ferem i lokal_que
+				//Må dette gjøres via pointer
 				break
 			}
-			else if{//neste etasje i ordre kø er under
-				//set elevDownCh true
+			else if current_floor > local_elevator_que[0] {//neste etasje i ordre kø er under
+				elevDownCh <- true
 				break
 			}
-			else if{//neste etasje i ordre kø er over
-				//set elevUpCh true
+			else if current_floor < local_elevator_que[0]{//neste etasje i odrdre kø er over
+				elevUpCh <- true
 				break
 			}
-			else if{//Obstruksjone detektert
-				for{//Obstruksjon detektert
-					time.Sleep(100*time.Millisecond)
-				}
-				break
-			}
+			for Elev_get_obstruction_signal == 1{
+				time.Sleep(100*time.Millisecond)
+			}	
 		}
 	}
 }
@@ -118,9 +119,38 @@ func Open(){
 }
 
 func Up(){
-
+	<-elevUpCh
+	ElevDirection = UP
+	driver.Elev_set_door_open_lamp(OFF)
+	Elev_set_motor_direction(1)
+	for{
+		for Elev_get_obstruction_signal == 1{
+			Elev_set_motor_direction(0)
+			time.Sleep(100*time.Millisecond)
+		}
+		if Elev_get_floor_sensor_signal() == local_elevator_que[0]{//Har nådd neste etasje i lokal heiskø
+			OpenDoorCh <- true
+			break
+		}
+		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}
+}
 
 func Down(){
+	<-elevDownCh
+	ElevDirection = DOWN
+	driver.Elev_set_door_open_lamp(OFF)
+	Elev_set_motor_direction(-1)
+	for{
+		for Elev_get_obstruction_signal == 1{
+			Elev_set_motor_direction(0)
+			time.Sleep(100*time.Millisecond)
+		}
+		if Elev_get_floor_sensor_signal() == local_elevator_que[0]{
+			OpenDoorCh <- true
+			break
+		}
+		//Do we need any saftey feature to prevent the eleavtor crash into the roof
+	}
 
 }

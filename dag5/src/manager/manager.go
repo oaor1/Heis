@@ -24,7 +24,9 @@ import (
 var(
 	System_data init.System_data
 	timeOutAuctionCh = make (chan bool)
+	local_elevator_que [N_FLLORS] int
 )
+
 func timeOutAuction(){
 	time.Sleep(40*time.Millisecond)
 	timeOutAuctionCh <- false
