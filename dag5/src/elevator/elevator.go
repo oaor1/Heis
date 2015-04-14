@@ -73,3 +73,54 @@ func FloorLigths(){
 		driver.Elev_set_floor_indicator(Elev_get_floor_sensor_signal())
 	}
 }
+
+func Idle(){
+	for{
+		<-idleCh
+		driver.Elev_set_motor_direction(0)
+		for{
+			time.Sleep(10*time.Millisecond)
+			if {//er etasjen i ordre kø
+				//set OpenDoorCh true
+				break
+			}
+			else if{//neste etasje i ordre kø er under
+				//set elevDownCh true
+				break
+			}
+			else if{//neste etasje i ordre kø er over
+				//set elevUpCh true
+				break
+			}
+			else if{//Obstruksjone detektert
+				for{//Obstruksjon detektert
+					time.Sleep(100*time.Millisecond)
+				}
+				break
+			}
+		}
+	}
+}
+
+func Open(){
+	for{
+		<-openDoorCh
+		Elev_set_motor_direction(0)
+		driver.Elev_set_door_open_lamp(ON)
+		doorTimerStartCh <- true
+		<-doorTimerStoppCh
+		for Elev_get_obstruction_signal() = 1{
+			time.Sleep(100*time.Millisecond)
+		}
+		driver.Elev_set_door_open_lamp(OFF)
+		idleCh <- true
+	}
+}
+
+func Up(){
+
+	}
+
+func Down(){
+
+}
