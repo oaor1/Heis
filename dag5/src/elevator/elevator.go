@@ -2,8 +2,8 @@ package elevator
 
 import (
 	"../driver"
-	"../init"
-	"../fmt"
+	"../types"
+	"fmt"
 )
 
 const(

@@ -12,26 +12,27 @@ const (
 	CONN_PORT = "20008"
 	CONN_REC = "30564"
 	CONN_type = "udp"
-	BROADCAST_IP = "192.168.2.255"
-	RECIVE_IP = "192.168.2.55"
+	BROADCAST_IP = "129.241.187.255"
+	RECIVE_IP = "129.241.187.148"
 )
 
 type(
-	testStruct struct{
-		value int
-		tekst string
-		liste []int
+	TestStruct struct{
+		Value int
+		Tekst string
+		Liste []int
 	}
 )
 
 func main(){
-	try1 := testStruct{
-		value: 7,
-		tekst: "haleluja, det virker",
-		liste: []int {1,2,3,4,5,7}}
+	try1 := TestStruct{
+		Value: 7,
+		Tekst: "haleluja, det virker",
+		Liste: []int {1,2,3,4,5,7}}
 
-	send(try1)
-	recive()
+	go send(try1)
+	go recive()
+	time.Sleep(40*time.Millisecond)
 }
 
 /*
@@ -52,7 +53,7 @@ Update_system_data_sendToComCh = make (chan init.Update_system_data)
 func recive(){
 	var buffer []byte = make([]byte, 256)
 		
-    udpAddress, err := net.ResolveUDPAddr(CONN_type, RECIVE_IP+":"+CONN_REC)
+    udpAddress, err := net.ResolveUDPAddr(CONN_type, ":"+CONN_REC)
 	if err != nil{
 		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
 		return
@@ -64,29 +65,28 @@ func recive(){
 		fmt.Println("ListenUDP failed \n", err, "\n")
 		return		
 	}
-	
-	for {
+
+	for i := 0; i<4; i++{
 		rlen,radr,err := socket.ReadFromUDP(buffer)
 		if err != nil{
 			fmt.Println("ReadFromUDP failed, not able to recive from\n")
 			return
 		}
 		fmt.Println("Recived ", rlen, " bytes from",radr," \n")
-		fmt.Printf("%d  \n\n",buffer[:])
-		var resUnmarshal testStruct
+//		fmt.Printf("%d  \n\n",buffer[:])
+		var resUnmarshal TestStruct
 		errunm := json.Unmarshal(buffer[0:rlen], &resUnmarshal)
 		if errunm != nil{
 			fmt.Println("resUnmarshal failed  %i \n", errunm)
 			return
 		}
-		mellomlagring := resUnmarshal.value
-		fmt.Printf("Dette er konvertert %d  \n\n\n", mellomlagring)
+		fmt.Printf("Dette er konvertert %v  \n\n\n",resUnmarshal)
 
-		time.Sleep(time.Second)	
+		time.Sleep(10*time.Millisecond)	
 	}	
 }
 
-func send(inputStruct testStruct){
+func send(inputStruct TestStruct){
 
 	
 	resMarshal, _ := json.Marshal(inputStruct)
@@ -96,6 +96,7 @@ func send(inputStruct testStruct){
 		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
 		return
 	}
+
 	socket, err := net.DialUDP(CONN_type, nil, serverAddress)
 	defer socket.Close()
 	if err != nil{
@@ -104,14 +105,14 @@ func send(inputStruct testStruct){
 	}
 	fmt.Println(serverAddress, "\n")
 
-	for{
+	for i := 0; i<4; i++{
 
 		_,err := socket.Write(resMarshal)
 		if err!= nil{
 			fmt.Println("WriteToUDP failed, ", err, "\n")
 			return
 		}
-		time.Sleep(1*time.Second)
+		time.Sleep(10*time.Millisecond)
 	}
 }
 

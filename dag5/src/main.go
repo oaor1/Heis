@@ -1,7 +1,7 @@
 package main
 
 import (
-	"../elevator"
+	"./elevator"
 	"runtime"
 	"time"
 	"fmt"

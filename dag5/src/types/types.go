@@ -1,5 +1,9 @@
 package types
 
+import(
+	"time"
+)
+
 const(
 	MAX_N_ELEVATORS = 10
 	N_FLOORS = 4
@@ -41,3 +45,4 @@ type(
 		elevator_number int
 
 	}
+)

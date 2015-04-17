@@ -1,7 +1,7 @@
 package com
 
 import (
-	"../init"
+	"../types"
 	"net"
 	"fmt"
 	"time"
@@ -17,14 +17,14 @@ const (
 
 var (
 //Oppretter globale chanels for å komunisere med manager
-System_data_sendToManagerCh = make(chan init.System_data)
-System_data_sendToComCh = make(chan init.System_data)
+System_data_sendToManagerCh = make(chan types.System_data)
+System_data_sendToComCh = make(chan types.System_data)
 
-Auction_bid_sendToManagerCh = make(chan init.Auction_data)
-Auction_bid_sendToComCh = make(chan init.Auction_data)
+Auction_bid_sendToManagerCh = make(chan types.Auction_data)
+Auction_bid_sendToComCh = make(chan types.Auction_data)
 
-Update_system_data_sendToManagerCh = make (chan init.Update_system_data)
-Update_system_data_sendToComCh = make (chan init.Update_system_data)
+Update_system_data_sendToManagerCh = make (chan types.Update_system_data)
+Update_system_data_sendToComCh = make (chan types.Update_system_data)
 
 )
 

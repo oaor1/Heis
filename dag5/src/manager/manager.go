@@ -14,7 +14,7 @@ Manager
 package manager
 
 import (
-	"../init"
+	"../types"
 	"../com"
 	"../elevator"
 	"fmt"
@@ -22,7 +22,7 @@ import (
 )
 
 var(
-	System_data init.System_data
+	System_data types.System_data
 	timeOutAuctionCh = make (chan bool)
 	local_elevator_que [N_FLLORS] int
 )
@@ -40,17 +40,17 @@ func recive_system_data_from_com(){
 */
 
 //go rutine for å sende sys_dat ved oppdatering og jevne mellomrom
-func send_system_data_to_com(updated_system_data init.System_data){
+func send_system_data_to_com(updated_system_data types.System_data){
 	System_data_sendToComCh <- updated_system_data
 }
 
 //go rutine for å sende bud
-func send_Auction_data_to_com(bid_offer init.Auction_data){
+func send_Auction_data_to_com(bid_offer types.Auction_data){
 	Auction_bid_sendToComCh <- bid_offer
 }
 
 //go rutine for å sende updated system data
-func send_System_data_update_to_com(system_data_update init.Auction_data){
+func send_System_data_update_to_com(system_data_update types.Auction_data){
 	Update_system_data_sendToComCh <- system_data_update
 }
 
@@ -89,7 +89,7 @@ func manage_incomming_data(){
 	}
 }
 
-func Auction_round(auction_object init.Auction_data) bool{
+func Auction_round(auction_object types.Auction_data) bool{
 	local_bid = calculate_cost(System_data, New_auction_data)
 	local_best_bid bool = true
 	if local_bid < New_auction_data.bid{
