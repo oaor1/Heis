@@ -3,7 +3,7 @@
 package driver
 
 import(
-  "../init"
+  "../types"
 	"fmt"
 )
 
