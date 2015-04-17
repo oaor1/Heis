@@ -76,14 +76,24 @@ func manage_incomming_data(){
 			// mottok systemdata fra com
 			System_data = new_system_data
 			// gjør noe fornuftig
-		case New_auction_data :=  <- System_data_sendToManagerCh:
+		case New_auction_data :=  <- Auction_data_sendToManagerCh:
 			fmt.printf ("Mottar auction data fra com til Manager\n")
 			// mottok auksjonsdata fra com
 			// vurderer inkommet bud mot eget bud, ekstern funksjon.
 
-		case New_system_data_update := <- Update_System_data_sendToManagerCh:
+		case New_system_data_update := <- Update_System_data_sendToManagerCh: //mulig man må pressisere type her 
 			fmt.printf ("Mottar update til systemdata fra com til Manager\n")
 			//mottok en oppdatering som skal legges til/slettes i system data
+			select{
+				case Matrix_type == 0: //  UpAuction_q
+					System_data.M_UpAuction_q[New_system_data_update.floor_n] = New_system_data_update.Add_order
+				case Matrix_type == 1: // DownAuction_q
+					System_data.M_DownAuction_q[New_system_data_update.floor_n] = New_system_data_update.Add_order
+				case Matrix_type == 2: // handel_q
+					System_data.M_handel_q[New_system_data_update.floor_n] = New_system_data_update.Add_order
+				case Matrix_type == 3: // internal out
+					System_data.M_internal_elev_out[New_system_data_update.floor_n] = 1 // andre kan aldri slette interne ut-bestillinger
+			}
 			
 		}
 	}
