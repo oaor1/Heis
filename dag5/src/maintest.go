@@ -6,7 +6,7 @@ package main
 import(
 	"fmt"
 	"time"
-	"driver"
+	"./driver"
 	"runtime"
 )
 func main() {

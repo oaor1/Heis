@@ -17,9 +17,9 @@ const(
 	UPAUCTION_Q = 3
 	DOWNAUCTION_Q = 4
 
-	UP = 1
+	RUNUP = 1
 	STOPP = 0
-	DOWN = -1
+	RUNDOWN = -1
 )
 
 type(

@@ -8,29 +8,19 @@ import(
 )
 
 const (
-  /*
-  MAX_N_ELEVATORS = 10
-	N_FLOORS = 4
-	N_BUTTONS = 3
-  */
-
-	DIRN_DOWN = -1
-	DIRN_STOP = 0
-	DIRN_UP = 1
-
 	BUTTON_CALL_UP = 0
   BUTTON_CALL_DOWN = 1
   BUTTON_COMMAND = 2
 )
 
-var lamp_channel_matrix = [N_FLOORS][N_BUTTONS]int{
+var lamp_channel_matrix = [types.N_FLOORS][types.N_BUTTONS]int{
     {LIGHT_UP1, LIGHT_DOWN1, LIGHT_COMMAND1},
     {LIGHT_UP2, LIGHT_DOWN2, LIGHT_COMMAND2},
     {LIGHT_UP3, LIGHT_DOWN3, LIGHT_COMMAND3},
     {LIGHT_UP4, LIGHT_DOWN4, LIGHT_COMMAND4},
 }
 
-var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
+var button_channel_matrix = [types.N_FLOORS][types.N_BUTTONS]int{
     {BUTTON_UP1, BUTTON_DOWN1, BUTTON_COMMAND1},
     {BUTTON_UP2, BUTTON_DOWN2, BUTTON_COMMAND2},
     {BUTTON_UP3, BUTTON_DOWN3, BUTTON_COMMAND3},
@@ -47,11 +37,11 @@ func Elev_init() int{
 	}
 
 	//Slukker alle lamper under initialsiering
-	for i := 0; i < N_FLOORS; i++ {
+	for i := 0; i < types.N_FLOORS; i++ {
 		if i != 0{
 			Elev_set_button_lamp(BUTTON_CALL_DOWN, i , 0)
 		}
-		if i != N_FLOORS - 1{
+		if i != types.N_FLOORS - 1{
 			Elev_set_button_lamp(BUTTON_CALL_UP, i ,0)
 		}
 		Elev_set_button_lamp(BUTTON_COMMAND, i, 0)
@@ -147,8 +137,7 @@ func Elev_get_floor_sensor_signal() int{
   @param floor Which floor lamp to turn on. Other floor lamps are turned off.
 */
 func Elev_set_floor_indicator(floor int) {
-
-  if 0 <= floor && floor < N_FLOORS {
+  if -1 <= floor && floor < types.N_FLOORS{
     if floor == 0{
       Io_clear_bit(LIGHT_FLOOR_IND1)
       Io_clear_bit(LIGHT_FLOOR_IND2)
@@ -184,14 +173,14 @@ func Elev_set_floor_indicator(floor int) {
 */
 func Elev_get_button_signal(button int, floor int) int {
     
-	if 0 <= floor && floor< N_FLOORS {
+	if 0 <= floor && floor< types.N_FLOORS {
 		if Io_read_bit(button_channel_matrix[floor][button]) != 0{
       return 1
     } else {
       return 0
     }
 	} else {
-		fmt.Printf("input floor is out of range!\n")
+		fmt.Printf("input floor is out of range!siganl\n")
     return 0
 	}
 }
@@ -205,13 +194,13 @@ func Elev_get_button_signal(button int, floor int) int {
   @param value Non-zero value turns lamp on, 0 turns lamp off.
 */
 func Elev_set_button_lamp(button int, floor int, value int) {
-	if 0 <= floor && floor< N_FLOORS {
+	if 0 <= floor && floor< types.N_FLOORS {
 		if value != 0{
     	Io_set_bit(lamp_channel_matrix[floor][button])
     } else {
       Io_clear_bit(lamp_channel_matrix[floor][button])
 		}
   } else {
-		fmt.Printf("input floor is out of range!\n")
+		fmt.Printf("input floor is out of range! button\n")
 	}
 }
