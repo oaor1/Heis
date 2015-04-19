@@ -15,7 +15,7 @@ const(
 
 var(
 	//for comunication with manager
-	next_floor int
+	next_floor int =2
 	Next_floorCh = make(chan int)
 	Next_floor_doneCh = make (chan bool)
 	current_floor int
@@ -51,7 +51,7 @@ func Run(){
 	go Up()
 	go Range_safety()
 	go Update_channels()
-	go Get_next_floor() //kun for testing
+	go Read_order_buttons()
 	idleCh <- true
 	<- done
 
@@ -79,6 +79,7 @@ func FloorLigths(){
 func Idle(){
 	for{
 		<-idleCh
+		fmt.Println("Idle entered")
 		driver.Elev_set_motor_direction(types.STOPP)
 		for{
 			time.Sleep(10*time.Millisecond)
@@ -114,7 +115,7 @@ func Open(){
 			time.Sleep(100*time.Millisecond)
 		}
 		driver.Elev_set_door_open_lamp(OFF)
-		Next_floor_doneCh <- true
+//		Next_floor_doneCh <- true //Noen må lese denne, hvis ikke blir den stuck her
 		idleCh <- true
 	}
 }
@@ -160,10 +161,11 @@ func Down(){
 
 func Update_channels(){
 	for{
-		next_floor = <- Next_floorCh
+//		next_floor = <- Next_floorCh //Må finnr ren bedere løsning på dette, nå venter den på input 
 		if driver.Elev_get_floor_sensor_signal() >= 0{
-			Current_floorCh <- driver.Elev_get_floor_sensor_signal()
+//			Current_floorCh <- driver.Elev_get_floor_sensor_signal()
 			current_floor = driver.Elev_get_floor_sensor_signal()
+			fmt.Println("Current floor: ", current_floor)
 		}
 		time.Sleep(100*time.Millisecond)
 	}
@@ -173,8 +175,10 @@ func Range_safety(){
 	for{
 		if driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1{
 			ElevDirection = types.RUNDOWN
+			fmt.Println("saftey down")
 		}else if driver.Elev_get_floor_sensor_signal() == 0{
 			ElevDirection = types.RUNUP
+			fmt.Println("saftey up")
 		}
 		time.Sleep(10*time.Millisecond)
 	}
@@ -184,18 +188,22 @@ func Door_safety(){
 	for{
 		if driver.Elev_get_floor_sensor_signal() == -1{
 			driver.Elev_set_door_open_lamp(OFF)
+			fmt.Println("Door safety")
 		}
 	}
 }
 
-func order_button_test(){
+func Read_order_buttons(){
 	for{
 		for i :=0; i < 4; i++{
 			for j := 0; j < 3; j++{
 				if driver.Elev_get_button_signal(j, i) != 0{
 					driver.Elev_set_button_lamp(j,i,1)
+					next_floor = i
+					fmt.Println("next floor: ", next_floor)
 				}
 			}
 		}
+		time.Sleep(40*time.Millisecond)
 	}
 }
