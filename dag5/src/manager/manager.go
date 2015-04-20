@@ -24,9 +24,17 @@ import (
 var(
 	System_data types.System_data
 	timeOutAuctionCh = make (chan bool)
-	local_elevator_que [N_FLOORS] int
+	local_elevator_que [types.N_FLOORS] int
 	Elevator_state types.Elevator_state
 )
+
+func Run(){
+	go send_system_data_to_com()
+	go send_Auction_data_to_com()
+	go send_System_data_update_to_com()
+	go manage_incomming_data()
+
+}
 
 func timeOutAuction(){
 	time.Sleep(40*time.Millisecond)
@@ -79,14 +87,14 @@ func determine_next_floor(){
 		if Elevator_state.Direction == RUNDOWN{
 			for i := N_FLOORS; i > 0; i-- {
 				if system_data.M_handel_q[1][i]==1{
-					return i
+					elevator.Next_floorCh <- i
 				}
 			}
 		}
 		else if Elevator_state.Direction == RUNUP{
 			for i := 0; i > N_FLOORS; i++ {
 				if system_data.M_handel_q[0][i]==1{
-					return i
+					elevator.Next_floorCh <- i
 				}	
 			}
 		}
@@ -150,7 +158,7 @@ func Auction_round(auction_object types.Auction_data) bool{
 	return local_best_bid
 }
 
-//dette er overflødig:
+/*/dette er overflødig:
 func manage_outgoing_data(){
 	for{
 		select{
@@ -166,6 +174,7 @@ func manage_outgoing_data(){
 		}
 	}
 }
+/*
 
 
 

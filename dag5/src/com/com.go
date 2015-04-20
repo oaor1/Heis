@@ -35,7 +35,7 @@ Next_floor_to_elevator = make (chan int)
 func recive(){
 	var buffer []byte = make([]byte, 256)
 		
-    udpAddress, err := net.ResolveUDPAddr(CONN_type, CONN_IP+":"+CONN_REC)
+    udpAddress, err := net.ResolveUDPAddr(CONN_type, BROADCAST_IP+":"+CONN_REC)
 	if err != nil{
 		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
 		return
@@ -74,7 +74,7 @@ func send(inputStruct testStruct){
 	
 	resMarshal, _ := json.Marshal(inputStruct)
 
-	serverAddress, err := net.ResolveUDPAddr(CONN_type, CONN_IP+":"+CONN_REC)
+	serverAddress, err := net.ResolveUDPAddr(CONN_type, BROADCAST_IP+":"+CONN_REC)
 	if err != nil{
 		fmt.Println("ResolveUDPAdresse failed \n", err, "\n")
 		return

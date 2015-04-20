@@ -1,6 +1,7 @@
 package main
 
 import (
+	"./manager"
 	"./elevator"
 	"runtime"
 //	"time"
@@ -20,6 +21,7 @@ func main (){
 	elev_snd := make (chan int)
 */
 	go elevator.Run()
+	go manager.Run()
 
 	<-done
 	fmt.Println("Ended")

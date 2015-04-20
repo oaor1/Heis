@@ -15,7 +15,7 @@ const(
 
 var(
 	//for comunication with manager
-	next_floor int =2
+	next_floor int //=2
 	Next_floorCh = make(chan int)
 	Next_floor_doneCh = make (chan bool)
 	current_floor int
