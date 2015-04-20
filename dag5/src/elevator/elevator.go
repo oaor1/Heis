@@ -104,10 +104,9 @@ func Open(){
 	for{
 		<-openDoorCh
 		fmt.Println("open enetered")
-		driver.Elev_set_motor_direction(ElevDirection *-1)
-		time.Sleep(50*time.Millisecond)
+//		driver.Elev_set_motor_direction(ElevDirection *-1)
+//		time.Sleep(50*time.Millisecond)
 		driver.Elev_set_motor_direction(types.STOPP) 
-		//stop func evt
 		driver.Elev_set_door_open_lamp(ON)
 		doorTimerStartCh <- true
 		<-doorTimerStoppCh
@@ -129,6 +128,7 @@ func Up(){
 	for{
 		for driver.Elev_get_obstruction_signal() == 1{
 			driver.Elev_set_motor_direction(types.STOPP)
+			fmt.Println("Obstruksjon RUNUP")
 			time.Sleep(100*time.Millisecond)
 		}
 		if driver.Elev_get_floor_sensor_signal() == next_floor{//Har nådd next_floor
@@ -149,6 +149,7 @@ func Down(){
 	for{
 		for driver.Elev_get_obstruction_signal() == 1{
 			driver.Elev_set_motor_direction(types.STOPP)
+			fmt.Println("Obstruksjon RUNUP")
 			time.Sleep(100*time.Millisecond)
 		}
 		if driver.Elev_get_floor_sensor_signal() == next_floor{//Har nådd next_floor
@@ -161,7 +162,9 @@ func Down(){
 
 func Update_channels(){
 	for{
-//		next_floor = <- Next_floorCh //Må finnr ren bedere løsning på dette, nå venter den på input 
+		selcet{
+		case next_floor = <- Next_floorCh:
+		}
 		if driver.Elev_get_floor_sensor_signal() >= 0{
 //			Current_floorCh <- driver.Elev_get_floor_sensor_signal()
 			current_floor = driver.Elev_get_floor_sensor_signal()
@@ -175,9 +178,11 @@ func Range_safety(){
 	for{
 		if driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1{
 			ElevDirection = types.RUNDOWN
+			Elev_set_motor_direction(STOPP)
 			fmt.Println("saftey down")
 		}else if driver.Elev_get_floor_sensor_signal() == 0{
 			ElevDirection = types.RUNUP
+			Elev_set_motor_direction(STOPP)
 			fmt.Println("saftey up")
 		}
 		time.Sleep(10*time.Millisecond)
