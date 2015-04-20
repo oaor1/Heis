@@ -26,6 +26,10 @@ Auction_bid_sendToComCh = make(chan types.Auction_data)
 Update_system_data_sendToManagerCh = make (chan types.Update_system_data)
 Update_system_data_sendToComCh = make (chan types.Update_system_data)
 
+Elevator_state_to_manager = make (chan types.Elevator_state)
+Handle_confirmation_to_manager = make (chan types.Handle_confirmation)
+Next_floor_to_elevator = make (chan int)
+
 )
 
 func recive(){

@@ -22,6 +22,8 @@ const(
 	RUNDOWN = -1
 )
 
+
+
 type(
 
 	System_data struct{
@@ -31,6 +33,13 @@ type(
 		M_UpAuction_q		[]		int
 		M_DownAuction_q		[]		int
 	}
+
+	Elevator_state struct{
+		Direction int     //    RUNUP / RUNDOWN / STOP
+		Last_floor int   //    0 - 3 
+	}
+
+	Handle_confirmation int 
 
 	Update_system_data struct{
 		Add_order bool //true for add and false for delete
