@@ -15,7 +15,7 @@ const(
 
 var(
 	//for comunication with manager
-	next_floor int //=2
+	next_floor int = 1
 	Next_floorCh = make(chan int)
 	Next_floor_doneCh = make (chan bool)
 	current_floor int
@@ -93,9 +93,13 @@ func Idle(){
 			}else if current_floor < next_floor {//neste etasje i odrdre kø er over
 				elevUpCh <- true
 				break
+			}else if driver.Elev_get_stop_signal() == 1{
+				stoppCh <- true
+				break
 			}
 			for driver.Elev_get_obstruction_signal() == 1{
 				time.Sleep(100*time.Millisecond)
+			fmt.Println("blalblalb")
 			}	
 		}
 	}
@@ -124,6 +128,7 @@ func Up(){
 	<-elevUpCh
 	fmt.Println("UP enetered")
 	ElevDirection = types.RUNUP
+//	ElevDirectionCh <- types.RUNUP
 	driver.Elev_set_door_open_lamp(OFF)
 	driver.Elev_set_motor_direction(ElevDirection)
 	for{
@@ -135,13 +140,13 @@ func Up(){
 		if driver.Elev_get_floor_sensor_signal() == next_floor{//Har nådd next_floor
 			openDoorCh <- true
 			break
-		}
-
-		if driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1{
+		}else if driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1{
 			ElevDirection = types.RUNDOWN
-			Elev_set_motor_direction(STOPP)
+			driver.Elev_set_motor_direction(types.STOPP)
 			fmt.Println("saftey down")
-
+		}else if driver.Elev_get_stop_signal() == 1{
+			stoppCh <- true
+		}
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}
 }
@@ -150,7 +155,7 @@ func Down(){
 	<-elevDownCh
 	fmt.Println("down enetered")
 	ElevDirection = types.RUNDOWN
-	ElevDirectionCh <- ElevDirection
+//	ElevDirectionCh <- ElevDirection
 	driver.Elev_set_motor_direction(ElevDirection)
 	driver.Elev_set_door_open_lamp(OFF)
 	for{
@@ -162,33 +167,50 @@ func Down(){
 		if driver.Elev_get_floor_sensor_signal() == next_floor{//Har nådd next_floor
 			openDoorCh <- true
 			break
-		}
-
-		if driver.Elev_get_floor_sensor_signal() == 0{
+		}else if driver.Elev_get_floor_sensor_signal() == 0{
 			ElevDirection = types.RUNUP
-			Elev_set_motor_direction(STOPP)
+			driver.Elev_set_motor_direction(types.STOPP)
 			fmt.Println("saftey up")
-		}else if Elev_get_stop_signal(){
-
+			break
+		}else if driver.Elev_get_stop_signal() == 1{
+			stoppCh <- true
+			break
 		}
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}
 }
 
 func Stopp(){
-		driver.Elev_set_motor_direction(types.STOPP)
-		Elev_set_stop_lamp(1)
+	<-stoppCh
+	fmt.Println("Stopp pushed")
+	driver.Elev_set_motor_direction(types.STOPP)
+	for driver.Elev_get_stop_signal() == 1{
+		driver.Elev_set_stop_lamp(1)
+	}
+	if driver.Elev_get_floor_sensor_signal() >= 0{
+		driver.Elev_set_door_open_lamp (1)
+	}
+	time.Sleep(1*time.Second)
+	for driver.Elev_get_stop_signal() == 1{
+		driver.Elev_set_door_open_lamp (0)
+		driver.Elev_set_stop_lamp(0)
+	}
+	idleCh <- true
 }
 
 func Update_channels(){
 	for{
+		/*
 		selcet{
-//		case next_floor = <- Next_floorCh:
+		case next_floor = <- Next_floorCh:
+			fmt.Println("Mottok next_floor fra Next_floorCh")
 		}
+		*/
+
 		if driver.Elev_get_floor_sensor_signal() >= 0{
 //			Current_floorCh <- driver.Elev_get_floor_sensor_signal()
 			current_floor = driver.Elev_get_floor_sensor_signal()
-			fmt.Println("Current floor: ", current_floor)
+//			fmt.Println("Current floor: ", current_floor)
 		}
 		time.Sleep(100*time.Millisecond)
 	}
