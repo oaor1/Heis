@@ -30,6 +30,7 @@ var(
 	openDoorCh = make(chan bool) //as bool
 	elevUpCh = make(chan bool) //as bool
 	elevDownCh = make(chan bool) //as bool
+	stoppCh = make(chan bool)
 	//osChan = chan os.Signal
 )
 
@@ -49,7 +50,7 @@ func Run(){
 	go Open()
 	go Down()
 	go Up()
-	go Range_safety()
+	go Stopp()
 	go Update_channels()
 	go Read_order_buttons()
 	idleCh <- true
@@ -135,6 +136,12 @@ func Up(){
 			openDoorCh <- true
 			break
 		}
+
+		if driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1{
+			ElevDirection = types.RUNDOWN
+			Elev_set_motor_direction(STOPP)
+			fmt.Println("saftey down")
+
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}
 }
@@ -156,14 +163,27 @@ func Down(){
 			openDoorCh <- true
 			break
 		}
+
+		if driver.Elev_get_floor_sensor_signal() == 0{
+			ElevDirection = types.RUNUP
+			Elev_set_motor_direction(STOPP)
+			fmt.Println("saftey up")
+		}else if Elev_get_stop_signal(){
+
+		}
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}
+}
+
+func Stopp(){
+		driver.Elev_set_motor_direction(types.STOPP)
+		Elev_set_stop_lamp(1)
 }
 
 func Update_channels(){
 	for{
 		selcet{
-		case next_floor = <- Next_floorCh:
+//		case next_floor = <- Next_floorCh:
 		}
 		if driver.Elev_get_floor_sensor_signal() >= 0{
 //			Current_floorCh <- driver.Elev_get_floor_sensor_signal()
@@ -171,21 +191,6 @@ func Update_channels(){
 			fmt.Println("Current floor: ", current_floor)
 		}
 		time.Sleep(100*time.Millisecond)
-	}
-}
-
-func Range_safety(){
-	for{
-		if driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1{
-			ElevDirection = types.RUNDOWN
-			Elev_set_motor_direction(STOPP)
-			fmt.Println("saftey down")
-		}else if driver.Elev_get_floor_sensor_signal() == 0{
-			ElevDirection = types.RUNUP
-			Elev_set_motor_direction(STOPP)
-			fmt.Println("saftey up")
-		}
-		time.Sleep(10*time.Millisecond)
 	}
 }
 

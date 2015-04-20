@@ -82,7 +82,7 @@ aldri endre retning før man har tatt øverste/nederste bestilling.
 
 
 */
-func determine_next_floor(){
+func determine_next_floor() int{
 // legge til metode for å endre direction i tilfelle liste i dir retning er tom
 		if Elevator_state.Direction == RUNDOWN{
 			for i := N_FLOORS; i > 0; i-- {
