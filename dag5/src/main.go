@@ -3,7 +3,7 @@ package main
 import (
 	"./elevator"
 	"runtime"
-	"time"
+//	"time"
 	"fmt"
 )
 
@@ -22,5 +22,5 @@ func main (){
 	go elevator.Run()
 
 	<-done
-	fmt.PrintLN("Ended")
+	fmt.Println("Ended")
 }

@@ -17,9 +17,9 @@ const(
 	UPAUCTION_Q = 3
 	DOWNAUCTION_Q = 4
 
-	UP = 1
+	RUNUP = 1
 	STOPP = 0
-	DOWN = -1
+	RUNDOWN = -1
 )
 
 type(
@@ -33,7 +33,7 @@ type(
 	}
 
 	Update_system_data struct{
-		Add_order bool //true for add and flase for delete
+		Add_order bool //true for add and false for delete
 		Matrix_type int //0-3, Upauction, downauction, handel, internal out
 		Elevator_n int
 		floor_n int

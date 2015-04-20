@@ -4,13 +4,10 @@ import (
 	"../driver"
 	"../types"
 	"fmt"
+	"time"
 )
 
 const(
-	RUNUP = 1
-	STOPP = 0
-	RUNDOWN = -1
-
 	ON = 1
 	OFF = 0
 	SPEED = 300
@@ -18,13 +15,13 @@ const(
 
 var(
 	//for comunication with manager
-	Next_floor int
+	next_floor int =2
 	Next_floorCh = make(chan int)
 	Next_floor_doneCh = make (chan bool)
-	Current_floor int
+	current_floor int
 	Current_floorCh = make (chan int)
 	ElevDirectionCh = make (chan int)
-	ElevDirection int = RUNDOWN
+	ElevDirection int = types.RUNDOWN
 
 	//Setter opp interne kananler /"states"
 	doorTimerStartCh = make(chan bool) //as bool
@@ -37,16 +34,16 @@ var(
 )
 
 func Run(){
-	done = make(chan bool)
+	done := make(chan bool)
 	//initialise the elevator
 	driver.Elev_init()
 	go DoorTimer()
 	go FloorLigths()
-	driver.Elev_set_motor_direction(RUNDOWN)
-	for driver.Elev_get_floor_sensor_signal() == RUNDOWN{
+	driver.Elev_set_motor_direction(types.RUNDOWN)
+	for driver.Elev_get_floor_sensor_signal() == types.RUNDOWN{
 		time.Sleep(10*time.Millisecond)
 	}
-	driver.Elev_set_motor_direction(STOPP)
+	driver.Elev_set_motor_direction(types.STOPP)
 	//Elevator initialized and in a definite floor
 	go Idle()
 	go Open()
@@ -54,6 +51,7 @@ func Run(){
 	go Up()
 	go Range_safety()
 	go Update_channels()
+	go Read_order_buttons()
 	idleCh <- true
 	<- done
 
@@ -64,7 +62,7 @@ func DoorTimer(){
 		<-doorTimerStartCh
 		time.Sleep(3*time.Second)
 		for driver.Elev_get_obstruction_signal() == 1{
-			time.Sleep(1*second)¨
+			time.Sleep(1*time.Second)
 			fmt.Printf("Obstruksjon av heis med dør åpen detektert.\n")
 		}
 		doorTimerStoppCh <- true
@@ -73,30 +71,29 @@ func DoorTimer(){
 
 func FloorLigths(){
 	for{
-		time.Sleep(10*millisecond)
-		driver.Elev_set_floor_indicator(Elev_get_floor_sensor_signal())
+		time.Sleep(10*time.Millisecond)
+		driver.Elev_set_floor_indicator(driver.Elev_get_floor_sensor_signal())
 	}
 }
 
 func Idle(){
 	for{
 		<-idleCh
-		driver.Elev_set_motor_direction(STOPP)
+		fmt.Println("Idle entered")
+		driver.Elev_set_motor_direction(types.STOPP)
 		for{
 			time.Sleep(10*time.Millisecond)
-			if Elev_get_floor_sensor_signal() == Next_floor{
-				Open <- true
+			if driver.Elev_get_floor_sensor_signal() == next_floor{
+				openDoorCh <- true
 				break
-			}
-			else if current_floor > Next_floor {//neste etasje i ordre kø er under
+			}else if current_floor > next_floor {//neste etasje i ordre kø er under
 				elevDownCh <- true
 				break
-			}
-			else if current_floor < Next_floor {//neste etasje i odrdre kø er over
+			}else if current_floor < next_floor {//neste etasje i odrdre kø er over
 				elevUpCh <- true
 				break
 			}
-			for Elev_get_obstruction_signal == 1{
+			for driver.Elev_get_obstruction_signal() == 1{
 				time.Sleep(100*time.Millisecond)
 			}	
 		}
@@ -106,34 +103,36 @@ func Idle(){
 func Open(){
 	for{
 		<-openDoorCh
-		Elev_set_motor_direction(ElevDirection *-1)
+		fmt.Println("open enetered")
+		driver.Elev_set_motor_direction(ElevDirection *-1)
 		time.Sleep(50*time.Millisecond)
-		Elev_set_motor_direction(STOPP) 
+		driver.Elev_set_motor_direction(types.STOPP) 
 		//stop func evt
 		driver.Elev_set_door_open_lamp(ON)
 		doorTimerStartCh <- true
 		<-doorTimerStoppCh
-		for Elev_get_obstruction_signal() = 1{
+		for driver.Elev_get_obstruction_signal() == 1{
 			time.Sleep(100*time.Millisecond)
 		}
 		driver.Elev_set_door_open_lamp(OFF)
-		Next_floor_doneCh <- true
+//		Next_floor_doneCh <- true //Noen må lese denne, hvis ikke blir den stuck her
 		idleCh <- true
 	}
 }
 
 func Up(){
 	<-elevUpCh
-	ElevDirection = RUNUP
+	fmt.Println("UP enetered")
+	ElevDirection = types.RUNUP
 	driver.Elev_set_door_open_lamp(OFF)
-	Elev_set_motor_direction(ElevDirection)
+	driver.Elev_set_motor_direction(ElevDirection)
 	for{
-		for Elev_get_obstruction_signal == 1{
-			Elev_set_motor_direction(STOPP)
+		for driver.Elev_get_obstruction_signal() == 1{
+			driver.Elev_set_motor_direction(types.STOPP)
 			time.Sleep(100*time.Millisecond)
 		}
-		if Elev_get_floor_sensor_signal() == Next_floor{//Har nådd next_floor
-			OpenDoorCh <- true
+		if driver.Elev_get_floor_sensor_signal() == next_floor{//Har nådd next_floor
+			openDoorCh <- true
 			break
 		}
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
@@ -142,17 +141,18 @@ func Up(){
 
 func Down(){
 	<-elevDownCh
-	ElevDirection = RUNDOWN
+	fmt.Println("down enetered")
+	ElevDirection = types.RUNDOWN
 	ElevDirectionCh <- ElevDirection
-	Elev_set_motor_direction(ElevDirection)
+	driver.Elev_set_motor_direction(ElevDirection)
 	driver.Elev_set_door_open_lamp(OFF)
 	for{
-		for Elev_get_obstruction_signal == 1{
-			Elev_set_motor_direction(STOPP)
+		for driver.Elev_get_obstruction_signal() == 1{
+			driver.Elev_set_motor_direction(types.STOPP)
 			time.Sleep(100*time.Millisecond)
 		}
-		if Elev_get_floor_sensor_signal() == Next_floor{//Har nådd next_floor
-			OpenDoorCh <- true
+		if driver.Elev_get_floor_sensor_signal() == next_floor{//Har nådd next_floor
+			openDoorCh <- true
 			break
 		}
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
@@ -161,10 +161,11 @@ func Down(){
 
 func Update_channels(){
 	for{
-		Next_floor <- Next_floorCh
-		if Elev_get_floor_sensor_signal() >= 0{
-			Current_floorCh <- Elev_get_floor_sensor_signal()
-			Current_floor = Elev_get_floor_sensor_signal()
+//		next_floor = <- Next_floorCh //Må finnr ren bedere løsning på dette, nå venter den på input 
+		if driver.Elev_get_floor_sensor_signal() >= 0{
+//			Current_floorCh <- driver.Elev_get_floor_sensor_signal()
+			current_floor = driver.Elev_get_floor_sensor_signal()
+			fmt.Println("Current floor: ", current_floor)
 		}
 		time.Sleep(100*time.Millisecond)
 	}
@@ -172,11 +173,12 @@ func Update_channels(){
 
 func Range_safety(){
 	for{
-		if Elev_get_floor_sensor_signal() == N_FLOORS{
-			ElevDirection = RUNDOWN
-		}
-		else if Elev_get_floor_sensor_signal() = 0{
-			ElevDirection = RUNUP
+		if driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1{
+			ElevDirection = types.RUNDOWN
+			fmt.Println("saftey down")
+		}else if driver.Elev_get_floor_sensor_signal() == 0{
+			ElevDirection = types.RUNUP
+			fmt.Println("saftey up")
 		}
 		time.Sleep(10*time.Millisecond)
 	}
@@ -184,8 +186,24 @@ func Range_safety(){
 
 func Door_safety(){
 	for{
-		if Elev_get_floor_sensor_signal == -1{
-			Elev_set_door_open_lamp(OFF)
+		if driver.Elev_get_floor_sensor_signal() == -1{
+			driver.Elev_set_door_open_lamp(OFF)
+			fmt.Println("Door safety")
 		}
+	}
+}
+
+func Read_order_buttons(){
+	for{
+		for i :=0; i < 4; i++{
+			for j := 0; j < 3; j++{
+				if driver.Elev_get_button_signal(j, i) != 0{
+					driver.Elev_set_button_lamp(j,i,1)
+					next_floor = i
+					fmt.Println("next floor: ", next_floor)
+				}
+			}
+		}
+		time.Sleep(40*time.Millisecond)
 	}
 }
