@@ -1,7 +1,7 @@
 package main
 
 import (
-//	"../init"
+	"./types"
 	"net"
 	"fmt"
 	"time"
@@ -12,8 +12,8 @@ const (
 	CONN_PORT = "20008"
 	CONN_REC = "30564"
 	CONN_type = "udp"
-	BROADCAST_IP = "129.241.187.255"
-	RECIVE_IP = "129.241.187.148"
+	BROADCAST_IP = "78.91.51.255"
+	RECIVE_IP = "78.91.51.196"
 )
 
 type(
@@ -24,13 +24,27 @@ type(
 	}
 )
 
+var (
+//	posission types.Elevator_state
+)
+
 func main(){
+	/*
 	try1 := TestStruct{
 		Value: 7,
 		Tekst: "haleluja, det virker",
 		Liste: []int {1,2,3,4,5,7}}
+*/
+	posission := types.Elevator_state{
+		Direction: types.RUNDOWN,
+		Last_floor: 3}
 
-	go send(try1)
+//	posission.Direction = types.RUNUP
+//	posission.Last_floor = 3
+
+//	go send(try1)
+	go recive()
+	go send(posission)
 	go recive()
 	time.Sleep(40*time.Millisecond)
 }
@@ -60,7 +74,7 @@ func recive(){
 	}
 
 	socket, err := net.ListenUDP(CONN_type, udpAddress)
-	defer socket.Close()
+//	defer socket.Close()
 	if err != nil{
 		fmt.Println("ListenUDP failed \n", err, "\n")
 		return		
@@ -74,7 +88,7 @@ func recive(){
 		}
 		fmt.Println("Recived ", rlen, " bytes from",radr," \n")
 //		fmt.Printf("%d  \n\n",buffer[:])
-		var resUnmarshal TestStruct
+		var resUnmarshal types.Elevator_state
 		errunm := json.Unmarshal(buffer[0:rlen], &resUnmarshal)
 		if errunm != nil{
 			fmt.Println("resUnmarshal failed  %i \n", errunm)
@@ -86,7 +100,7 @@ func recive(){
 	}	
 }
 
-func send(inputStruct TestStruct){
+func send(inputStruct types.Elevator_state){
 
 	
 	resMarshal, _ := json.Marshal(inputStruct)
