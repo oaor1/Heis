@@ -17,11 +17,13 @@ var(
 	//for comunication with manager
 	next_floor int = 1
 	Next_floorCh = make(chan int)
-	Next_floor_doneCh = make (chan bool)
+	Next_floor_doneCh = make (chan int)
 	current_floor int
 	Current_floorCh = make (chan int)
 	ElevDirectionCh = make (chan int)
 	ElevDirection int = types.RUNDOWN
+	External_orderCh = make (chan types.Auction_data)
+	Internal_orderCh = make (chan int)
 
 	//Setter opp interne kananler /"states"
 	doorTimerStartCh = make(chan bool) //as bool
@@ -72,7 +74,7 @@ func DoorTimer(){
 
 func FloorLigths(){
 	for{
-		time.Sleep(10*time.Millisecond)
+		time.Sleep(50*time.Millisecond)
 		driver.Elev_set_floor_indicator(driver.Elev_get_floor_sensor_signal())
 	}
 }
@@ -119,7 +121,7 @@ func Open(){
 			time.Sleep(100*time.Millisecond)
 		}
 		driver.Elev_set_door_open_lamp(OFF)
-//		Next_floor_doneCh <- true //Noen må lese denne, hvis ikke blir den stuck her
+//		Next_floor_doneCh <- current_floor //Noen må lese denne, hvis ikke blir den stuck her
 		idleCh <- true
 	}
 }
@@ -200,12 +202,11 @@ func Stopp(){
 
 func Update_channels(){
 	for{
-		/*
 		selcet{
 		case next_floor = <- Next_floorCh:
 			fmt.Println("Mottok next_floor fra Next_floorCh")
+		default:
 		}
-		*/
 
 		if driver.Elev_get_floor_sensor_signal() >= 0{
 //			Current_floorCh <- driver.Elev_get_floor_sensor_signal()
@@ -227,10 +228,17 @@ func Door_safety(){
 
 func Read_order_buttons(){
 	for{
-		for i :=0; i < 4; i++{
-			for j := 0; j < 3; j++{
+		for i :=0; i < types.N_FLOORS-1; i++{
+			if driver.Elev_get_button_signal(0,i) != 0{
+				driver.Elev_get_button_signal(0,i,1)
+				Internal_orderCh <- i
+			}
+			for j := 1; j < 3; j++{
 				if driver.Elev_get_button_signal(j, i) != 0{
 					driver.Elev_set_button_lamp(j,i,1)
+					new_order types.Auction_data
+					new_order.floor
+					External_orderCh <- 
 					next_floor = i
 					fmt.Println("next floor: ", next_floor)
 				}
