@@ -18,6 +18,7 @@ import (
 	"../cost"
 	"../com"
 	"../elevator"
+	"../timer"
 	"fmt"
 	"time"
 )
@@ -27,6 +28,7 @@ var(
 	timeOutAuctionCh = make (chan bool)
 	local_elevator_que [types.N_FLOORS] int
 	Elevator_state types.Elevator_state
+
 )
 
 func Run(){
@@ -39,10 +41,6 @@ func Run(){
 
 }
 
-func timeOutAuction(){
-	time.Sleep(40*time.Millisecond)
-	timeOutAuctionCh <- false
-}
 /*
 //go rutine for å ta i mot nye ordre i sys_dat
 func recive_system_data_from_com(){
@@ -160,11 +158,13 @@ func manage_incomming_data(){
 				new_external_auction_data.elevator_number = //___________
 				new_external_auction_data.bid = new_internal_bid
 				Auction_bid_sendToComCh <- new_external_auction_data //er egentlig den lokale veriden
+				//Jeg leder, men må vente på timeout
 			}else if new_internal_bid == new_external_auction_data.bid{ //
 				if new_external_auction_data.elevator_number < local_elevator_number{
 					new_external_auction_data.elevator_number = //___________
 					new_external_auction_data.bid = new_internal_bid
 					Auction_bid_sendToComCh <- new_external_auction_data //er egentlig den lokale veriden
+					//Jeg leder, men må vente på timeout
 				}
 			}
 			// vurderer inkommet bud mot eget bud, ekstern funksjon.
