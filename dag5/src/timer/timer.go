@@ -21,7 +21,10 @@ func timer(auction_data types.Auction_data){
 }
 
 func handle_timer_for_new_bids(){
-	
+	newAuctionObject := <- NewAuctionInfoToTimer
+	if newAuctionObject.
+
+
 
 }
 
@@ -40,7 +43,7 @@ func decrement_and_check_timers(){
 			Up_order_timer[i] = 0
 			WinningBid types.Auction_data
 			WinningBid.Floor = i
-			WinningBid.Matrix_type = 0
+			WinningBid.Matrix_type = 0 // maa agsaa legge til i handle timer
 			NotifyWinningBidToManager <- WinningBid
 
 		}
@@ -52,7 +55,7 @@ func decrement_and_check_timers(){
 			NotifyWinningBidToManager <- WinningBid
 		}
 		if Handle_q_timer[i] ==1{
-			Handle_q_timer[i] = 0
+			Handle_q_timer[i] = 0 // dette er tulle her skal man starte ny ausjonsrunde fra manager
 			WinningBid types.Auction_data
 			WinningBid.Floor = i
 			WinningBid.Matrix_type = 2
