@@ -12,9 +12,11 @@ calculate_cost(System_data types.System_data, New_auction_data types.Auction_dat
 	dwn_orders := 0
 	overlap_orders := 0
 	/*
+	++++ obstruksjon
+	++++ stoppknapp
 	+ antall bestillinger i samme retning ^Y  * distandse * konst
 	+ antall bestillinger i motsatt retning ^X * distanse * konst
-	- overlappende bestillinger
+	- overlappende bestillinger (bor splittes i to caser , en for hver retning)
 	*/
 	for i := 0; i < N_FLOORS; i++ {
 		if System_data.M_handle_q[0][i] == 1{

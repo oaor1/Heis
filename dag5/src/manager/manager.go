@@ -50,10 +50,14 @@ func recive_system_data_from_com(){
 	return new_system_data
 }
 */
-func start_auction(){
-	//trigger ved pakke fra auction channel
-	new_external_bid <- Auction_bid_sendToManagerCh
+
+
+
+func start_auction(external_bid){ //lage to funskjoner for forskjellige triggere
 	new_internal_bid = calculate_cost(System_data, new_external_bid)
+	if new_internal_bid < new_external_bid{
+
+	}
 }
 //rutine for å sende sys_dat ved oppdatering og jevne mellomrom
 func send_system_data_to_com(updated_system_data types.System_data){
@@ -116,34 +120,68 @@ func execute_order(){
 	System_data.M_internal_elev_out[/*myElevatorNumber*/][order_to_delete] = 0
 
 }
+/* kan slettes
+func external_auction_monitor(){
+
+	new_external_bid <- Auction_bid_sendToManagerCh
+	start_auction(new_external_bid)
+}
+
+func local_auction_monitor(){
+	new_external_bid <- Auction_bid_sendToManagerCh
+	start_auction(new_external_bid)
+}
+*/
 
 
 func manage_incomming_data(){
 	for{
 		select{
-		case new_system_data := <- System_data_sendToManagerCh:
+
+		
+		case new_system_data := <- com.System_data_sendToManagerCh:
 			fmt.printf ("Mottar system data fra com til Manager\n")
 			// mottok systemdata fra com
 			System_data = new_system_data
 			// gjør noe fornuftig
-		case New_auction_data :=  <- Auction_data_sendToManagerCh:
+
+		case new_Local_order := <- elevator.Local_orderCh:
+			new_internal_bid = calculate_cost(System_data, new_Local_order)
+			new_Local_order.bid = new_internal_bid
+			new_Local_order.elevator_number = //_____________
+			Auction_bid_sendToComCh <- new_Local_order
+
+
+		case new_external_auction_data :=  <- com.Auction_bid_sendToManagerCh:
 			fmt.printf ("Mottar auction data fra com til Manager\n")
 			// mottok auksjonsdata fra com
-
+			new_internal_bid = calculate_cost(System_data, new_external_auction_data)
+			if new_internal_bid < new_external_auction_data.bid{
+				new_external_auction_data.elevator_number = //___________
+				new_external_auction_data.bid = new_internal_bid
+				Auction_bid_sendToComCh <- new_external_auction_data //er egentlig den lokale veriden
+			}else if new_internal_bid == new_external_auction_data.bid{ //
+				if new_external_auction_data.elevator_number < local_elevator_number{
+					new_external_auction_data.elevator_number = //___________
+					new_external_auction_data.bid = new_internal_bid
+					Auction_bid_sendToComCh <- new_external_auction_data //er egentlig den lokale veriden
+				}
+			}
 			// vurderer inkommet bud mot eget bud, ekstern funksjon.
 
-		case New_system_data_update := <- Update_System_data_sendToManagerCh: //mulig man må pressisere type her 
+		case new_system_data_update := <- Update_System_data_sendToManagerCh: //mulig man må pressisere type her 
 			fmt.printf ("Mottar update til systemdata fra com til Manager\n")
 			//mottok en oppdatering som skal legges til/slettes i system data
 			select{
 				case Matrix_type == 0: //  UpAuction_q
-					System_data.M_UpAuction_q[New_system_data_update.floor_n] = New_system_data_update.Add_order
+					System_data.M_UpAuction_q[new_system_data_update.floor_n] = new_system_data_update.Add_order
 				case Matrix_type == 1: // DownAuction_q
-					System_data.M_DownAuction_q[New_system_data_update.floor_n] = New_system_data_update.Add_order
+					System_data.M_DownAuction_q[new_system_data_update.floor_n] = new_system_data_update.Add_order
 				case Matrix_type == 2: // handel_q
-					System_data.M_handel_q[New_system_data_update.floor_n] = New_system_data_update.Add_order
+					System_data.M_handel_q[new_system_data_update.floor_n] = new_system_data_update.Add_order
 				case Matrix_type == 3: // internal out
-					System_data.M_internal_elev_out[New_system_data_update.floor_n] = 1 // andre kan aldri slette interne ut-bestillinger
+					System_data.M_internal_elev_out[new_system_data_update.floor_n] = 1 // andre kan aldri slette interne ut-bestillinger
+		//default???	
 			}
 			
 		}
