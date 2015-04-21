@@ -15,6 +15,7 @@ package manager
 
 import (
 	"../types"
+	"../cost"
 	"../com"
 	"../elevator"
 	"fmt"
@@ -29,10 +30,12 @@ var(
 )
 
 func Run(){
+	done := make (chan bool)
 	go send_system_data_to_com()
 	go send_Auction_data_to_com()
 	go send_System_data_update_to_com()
 	go manage_incomming_data()
+	<- done
 
 }
 
@@ -47,7 +50,11 @@ func recive_system_data_from_com(){
 	return new_system_data
 }
 */
-
+func start_auction(){
+	//trigger ved pakke fra auction channel
+	new_external_bid <- Auction_bid_sendToManagerCh
+	new_internal_bid = calculate_cost(System_data, new_external_bid)
+}
 //rutine for å sende sys_dat ved oppdatering og jevne mellomrom
 func send_system_data_to_com(updated_system_data types.System_data){
 	System_data_sendToComCh <- updated_system_data
@@ -102,7 +109,8 @@ func determine_next_floor() int{
 
 //go rutine for å motta kvittering i fra heis på at etasje er besøkt /ordre er utført 
 func execute_order(){
-	order_to_delete := <- Handle_confirmation_to_manager
+	order_to_delete := <- Next_floor_doneCh 
+//dette funker ikke helt som vi tenker at det skal, hais kan skifte retning
 	System_data.M_handle_q[0][order_to_delete] = 0
 	System_data.M_handle_q[1][order_to_delete] = 0
 	System_data.M_internal_elev_out[/*myElevatorNumber*/][order_to_delete] = 0
@@ -142,7 +150,7 @@ func manage_incomming_data(){
 	}
 }
 
-func Auction_round(auction_object types.Auction_data) bool{
+func Auction_round(auction_object types.Auction_data){
 	local_bid = calculate_cost(System_data, New_auction_data)
 	local_best_bid bool = true
 	if local_bid < New_auction_data.bid{

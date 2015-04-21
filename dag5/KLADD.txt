@@ -1,0 +1,7 @@
+KLADD
+
+
+Manager må ha rutine for å legge til nye heiser i system_data IP_LIST osv
+
+trigget av forespørsel av ny heis, eller indirekte innleggelse av ny system data
+som ny heis har generert på bakgrunn ab sys_dat som andre heiser har sendt seg i mellom

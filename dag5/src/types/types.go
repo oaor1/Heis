@@ -39,7 +39,7 @@ type(
 		Last_floor int   //    0 - 3 
 	}
 
-	Handle_confirmation int 
+	Handle_confirmation int  //manager faar bekreftelse paa etasje besok
 
 	Update_system_data struct{
 		Add_order bool //true for add and false for delete
@@ -50,7 +50,8 @@ type(
 
 	Auction_data struct{
 		bid int
-		Auction_object [] int // [up/down, etasje]
+		floor int
+		direction int 
 		elevator_number int
 
 	}
