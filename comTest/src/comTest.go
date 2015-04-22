@@ -13,7 +13,7 @@ const (
 	CONN_REC = "30564"
 	CONN_type = "udp"
 	BROADCAST_IP = "78.91.51.255"
-	RECIVE_IP = "78.91.51.196"
+	RECIVE_IP = "129.241.287.145"
 )
 
 type(
@@ -35,18 +35,18 @@ func main(){
 		Tekst: "haleluja, det virker",
 		Liste: []int {1,2,3,4,5,7}}
 */
-	posission := types.Elevator_state{
+/*	posission := types.Elevator_state{
 		Direction: types.RUNDOWN,
 		Last_floor: 3}
-
+*/
 //	posission.Direction = types.RUNUP
 //	posission.Last_floor = 3
 
 //	go send(try1)
 	go recive()
-	go send(posission)
-	go recive()
-	time.Sleep(40*time.Millisecond)
+//	go send(posission)
+//	go recive()
+	time.Sleep(10000*time.Millisecond)
 }
 
 /*

@@ -13,7 +13,7 @@ var(
 	Down_order_timer [types.N_FLOORS-1] int
 	Handle_q_timer [types.N_FLOORS-1] int
 )
-
+// vi maa utvide
 func timer(auction_data types.Auction_data){
 
 	
@@ -27,8 +27,14 @@ func handle_timer_for_new_bids(){
 
 
 }
+func decrement_and_check_handle_timers(){
+	for i := 0; i < ; i++ {
+		
+	}
 
-func decrement_and_check_timers(){
+}
+
+func decrement_and_check_auction_timers(){
 	for i := 0; i < (types.N_FLOORS)-1; i++ {
 		if up_order_timer[i] > 0{
 			Up_order_timer[i] = up_order_timer[i] - 1
@@ -36,9 +42,7 @@ func decrement_and_check_timers(){
 		if Down_order_timer[i] > 0{
 			Down_order_timer[i] = Down_order_timer[i] - 1
 		}
-		if Handle_q_timer[i] > 0{
-			Handle_q_timer[i] = handle_q_timer[i] - 1
-		}
+		
 		if up_order_timer[i] == 1{
 			Up_order_timer[i] = 0
 			WinningBid types.Auction_data
@@ -54,14 +58,6 @@ func decrement_and_check_timers(){
 			WinningBid.Matrix_type = 1
 			NotifyWinningBidToManager <- WinningBid
 		}
-		if Handle_q_timer[i] ==1{
-			Handle_q_timer[i] = 0 // dette er tulle her skal man starte ny ausjonsrunde fra manager
-			WinningBid types.Auction_data
-			WinningBid.Floor = i
-			WinningBid.Matrix_type = 2
-			NotifyWinningBidToManager <- WinningBid
-		}
-		
 	}
 
 	time.Sleep(40*time.Millisecond) // maa sikkert endrest paa
