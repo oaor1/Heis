@@ -49,30 +49,49 @@ func recive(){
 	}
 	
 	for {
+		//er forrige pakke ulik den forrige?
 		rlen,radr,err := socket.ReadFromUDP(buffer)
 		if err != nil{
 			fmt.Println("ReadFromUDP failed, not able to recive from\n")
 			return
 		}
 		fmt.Println("Recived ", rlen, " bytes from",radr," \n")
-		fmt.Printf("%d  \n\n",buffer[:])
-		var resUnmarshal testStruct
-		errunm := json.Unmarshal(buffer[0:rlen], &resUnmarshal)
-		if errunm != nil{
-			fmt.Println("resUnmarshal failed  %i \n", errunm)
-			return
+		switch {
+    	case buffer[0] == 0:
+    		var resUnmarshal types.Auction_data
+			errunm := json.Unmarshal(buffer[1:len(resMarshal)+1], &resUnmarshal)
+			if errunm != nil{
+				fmt.Printf("resUnmarshal failed  %i \n", errunm)
+				return
+			}
+			Auction_bid_sendToManagerCh <- resUnmarshal
+    	case buffer[0] == 1:
+    		var resUnmarshal types.Update_system_data
+			errunm := json.Unmarshal(buffer[1:len(resMarshal)+1], &resUnmarshal)
+			if errunm != nil{
+				fmt.Printf("resUnmarshal failed  %i \n", errunm)
+				return
+			}
+			Update_system_data_sendToManagerCh <- resUnmarshal
+    	case buffer[0] == 2:
+    		var resUnmarshal types.System_data
+			errunm := json.Unmarshal(buffer[1:len(resMarshal)+1], &resUnmarshal)
+			if errunm != nil{
+				fmt.Printf("resUnmarshal failed  %i \n", errunm)
+				return
+			}
+			System_data_sendToManagerCh <- resUnmarshal
+		default:
+			fmt.Println("unknown type of struct")
 		}
-		mellomlagring := resUnmarshal.Tall
-		fmt.Printf("Dette er konvertert %d  \n\n\n", mellomlagring)
-
-		time.Sleep(time.Second)	
+		time.Sleep(time.Millisecond)	
 	}	
 }
 
 func send(inputStruct testStruct){
 
 	
-	resMarshal, _ := json.Marshal(inputStruct)
+
 
 	serverAddress, err := net.ResolveUDPAddr(CONN_type, BROADCAST_IP+":"+CONN_REC)
 	if err != nil{
@@ -85,16 +104,25 @@ func send(inputStruct testStruct){
 		fmt.Println("DialUDP failed \n", err, "\n")
 		return
 	}
+	for {
+		select{
+		case toMarshal := <- Auction_bid_sendToComCh:
+
+		case toMarshal := <- Update_system_data_sendToComCh:
+
+		case toMarshal := <- System_data_sendToComCh:
+		}
+		resMarshal, _ := json.Marshal(toMarshal)
+	}
+	
 	fmt.Println(serverAddress, "\n")
-
-	for{
-
+	for i := 0; i<4; i++{
 		_,err := socket.Write(resMarshal)
 		if err!= nil{
 			fmt.Println("WriteToUDP failed, ", err, "\n")
 			return
 		}
-		time.Sleep(1*time.Second)
+		time.Sleep(5*time.Millisecond)
 	}
 }
 

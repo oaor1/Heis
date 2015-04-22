@@ -13,7 +13,7 @@ const (
 	CONN_REC = "30564"
 	CONN_type = "udp"
 	BROADCAST_IP = "78.91.51.255"
-	RECIVE_IP = "129.241.287.145"
+	RECIVE_IP = "78.91.51.196"
 )
 
 type(
@@ -26,6 +26,7 @@ type(
 
 var (
 	posission types.Elevator_state
+	Some_kind_of_structCh = make (chan )
 )
 
 func main(){
@@ -35,14 +36,6 @@ func main(){
 		Tekst: "haleluja, det virker",
 		Liste: []int {1,2,3,4,5,7}}
 */
-<<<<<<< HEAD
-/*	posission := types.Elevator_state{
-		Direction: types.RUNDOWN,
-		Last_floor: 3}
-*/
-//	posission.Direction = types.RUNUP
-//	posission.Last_floor = 3
-=======
 /*
 	posission := types.Elevator_state{
 		Direction: types.RUNDOWN,
@@ -52,13 +45,12 @@ func main(){
 
 	posission.Direction = types.RUNUP
 	posission.Last_floor = 3
->>>>>>> 21c6b7aabc69372498eccb69270a55f2713770c8
 
 //	go send(try1)
 	go recive()
-//	go send(posission)
-//	go recive()
-	time.Sleep(10000*time.Millisecond)
+	go send(posission)
+	go recive()
+	time.Sleep(40*time.Millisecond)
 }
 
 /*
@@ -114,7 +106,7 @@ func recive(){
 
 func send(inputStruct types.Elevator_state){
 
-	
+	Some_kind_of_struct := <- Some_kind_of_structCh
 	resMarshal, _ := json.Marshal(inputStruct)
 
 	serverAddress, err := net.ResolveUDPAddr(CONN_type, BROADCAST_IP+":"+CONN_REC)

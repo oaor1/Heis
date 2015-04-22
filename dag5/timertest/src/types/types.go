@@ -25,6 +25,7 @@ const(
 
 
 type(
+
 	System_data struct{
 		IP_list				[] 		string		//
 		M_handle_q			[][]	int
@@ -51,6 +52,10 @@ type(
 		Bid int
 		Floor int
 		Direction int 
+		Matrix_type int
 		Elevator_number int
+		Add int
+		Number_of_elevators int
+
 	}
 )
