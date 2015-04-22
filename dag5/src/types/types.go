@@ -48,11 +48,15 @@ type(
 		floor_n int
 	}
 
+	
 	Auction_data struct{
 		Bid int
 		Floor int
 		Direction int 
+		Matrix_type int
 		Elevator_number int
+		Add int
+		Number_of_elevators int
 
 	}
 )
