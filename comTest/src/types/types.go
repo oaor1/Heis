@@ -25,7 +25,6 @@ const(
 
 
 type(
-
 	System_data struct{
 		IP_list				[] 		string		//
 		M_handle_q			[][]	int
@@ -49,10 +48,9 @@ type(
 	}
 
 	Auction_data struct{
-		bid int
-		floor int
-		direction int 
-		elevator_number int
-
+		Bid int
+		Floor int
+		Direction int 
+		Elevator_number int
 	}
 )

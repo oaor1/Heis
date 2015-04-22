@@ -26,6 +26,7 @@ type(
 
 var (
 	posission types.Elevator_state
+	Some_kind_of_structCh = make (chan )
 )
 
 func main(){
@@ -105,7 +106,7 @@ func recive(){
 
 func send(inputStruct types.Elevator_state){
 
-	
+	Some_kind_of_struct := <- Some_kind_of_structCh
 	resMarshal, _ := json.Marshal(inputStruct)
 
 	serverAddress, err := net.ResolveUDPAddr(CONN_type, BROADCAST_IP+":"+CONN_REC)
