@@ -12,7 +12,8 @@ const (
 	CONN_PORT = "20408"
 	CONN_REC = "30564"
 	CONN_type = "udp"
-	BROADCAST_IP = "78.91.51.255"
+	BROADCAST_IP = "129.241.187.255"
+//	BROADCAST_IP = "78.91.51.255"
 )
 
 var (
