@@ -34,8 +34,8 @@ Next_floor_to_elevator = make (chan int)
 
 func main(){
 	var Struct1  types.Update_system_data
-	var Struct2  types.System_data
-	var Struct3  types.Auction_data
+//	var Struct2  types.System_data
+//	var Struct3  types.Auction_data
 
 	go send()
 	time.Sleep(300*time.Millisecond)
@@ -46,12 +46,12 @@ func main(){
 
 	time.Sleep(2*time.Second)
 
-	Auction_bid_sendToComCh <- Struct3
-	System_data_sendToComCh <- Struct2
+//	Auction_bid_sendToComCh <- Struct3
+//	System_data_sendToComCh <- Struct2
 	Update_system_data_sendToComCh <- Struct1
 
 
-	time.Sleep(2*time.Second)
+	time.Sleep(10*time.Second)
 
 
 }

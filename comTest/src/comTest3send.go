@@ -41,14 +41,10 @@ func main(){
 	time.Sleep(300*time.Millisecond)
 	go recive()
 	go print()
-//	Update_system_data_sendToComCh <- Struct1
-	Auction_bid_sendToComCh <- Struct3
-
-	time.Sleep(2*time.Second)
-
+	Update_system_data_sendToComCh <- Struct1
 	Auction_bid_sendToComCh <- Struct3
 	System_data_sendToComCh <- Struct2
-	Update_system_data_sendToComCh <- Struct1
+//	Update_system_data_sendToComCh <- Struct1
 
 
 	time.Sleep(2*time.Second)
