@@ -114,7 +114,7 @@ func Up(){
 			time.Sleep(100*time.Millisecond)
 		}
 		switch{
-			case current_floor == next_floor:
+			case current_floor == next_floor: //Her må det gjøres noe
 				Open()
 			case driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1:
 				ElevDirection = types.RUNDOWN
