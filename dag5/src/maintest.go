@@ -28,13 +28,23 @@ func run_elev(){
 	for{
 		driver.Elev_set_motor_direction(1)
 
-		time.Sleep(1*time.Second)
+		time.Sleep(50*time.Millisecond)
 
 		driver.Elev_set_door_open_lamp(1)
 
 		driver.Elev_set_motor_direction(-1)
 
-		time.Sleep(1*time.Second)
+		time.Sleep(100*time.Millisecond)
+
+		driver.Elev_set_motor_direction(1)
+
+		time.Sleep(100*time.Millisecond)
+
+		driver.Elev_set_door_open_lamp(1)
+
+		driver.Elev_set_motor_direction(-1)
+
+		time.Sleep(50*time.Millisecond)
 	}
 }
 
