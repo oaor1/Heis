@@ -1,4 +1,4 @@
-package main
+package timer
 
 import (
 	"../types"
@@ -6,14 +6,16 @@ import (
 	"time"
 )
 const(
-	AUCTIONTIME = 10  // the timer will count for something like AUCTIONTIME * DECREMENT_INTERVAL
-	DECREMENT_INTERVAL = 40*time.Millisecond
+	AUCTIONTIME = 1000  // the timer will count for something like AUCTIONTIME * DECREMENT_INTERVAL
+	DECREMENT_INTERVAL = 4*time.Millisecond
 )
 
 var(
 	NotifyWinningBidToManagerCh = make(chan types.Auction_data)
 	NewAuctionInfoToTimerCh = make(chan types.Auction_data)
 	NewPeripheralOrderCh = make(chan types.Auction_data)
+	Handle_q_timeoutCh = make(chan types.Auction_data)
+
 
 	//Number_of_elevators int
 
@@ -28,66 +30,45 @@ var(
 	
 )
 
-func main(){
 
 
-	fmt.Print("hallo from main \n")
-	go funk()
-	go kanaliser()
-	go decrement_and_check_handle_timers()
-	go decrement_and_check_auction_timers()
-
-	go remember_standing_bid()
-
-	go add_handle_timer_for_new_system_data_update()
-
-	var Tullebud types.Auction_data
-	Tullebud.Bid = 70
-	Tullebud.Direction = 1
-	Tullebud.Add = 1
-	Tullebud.Floor = 2
-	fmt.Printf("%v  \n ",Tullebud)
-	//fmt.Print("hallo etter tullebud \n")
-	NewAuctionInfoToTimerCh <- Tullebud
-	
-	fmt.Print("hallo from main \n")
-	
-	NotifyWinningBidToManagerCh <- Tullebud
-	
-
-	time.Sleep(10*time.Second)
-
-}
-
-func kanaliser(){
+func Kanaliser(){
 
 
 	
 
 }
 
-func funk(){
+func Funk(){
+	fmt.Print("-------- hallo from funk() \n")
 	for{
 
-		time.Sleep(1*time.Second)
+		time.Sleep(1*time.Millisecond)
+
 		select{
-		case ettelleranna := <- NotifyWinningBidToManagerCh:
-			fmt.Print("Vi Vant Vi VaAnT !!! %v ",ettelleranna)
+		case vinnarbud := <- NotifyWinningBidToManagerCh:
+			fmt.Printf("Vi Vant Vi VaAnT !!! \n %v \n",vinnarbud)
+		case nokken_somla := <- Handle_q_timeoutCh:
+			fmt.Printf("-----Nokken har somla, \n %v \n",nokken_somla)
+
 
 		}
 	}
 }
 
-func remember_standing_bid(){
+func Remember_standing_bid(){
+	fmt.Print("-------- hallo from remember_standing_bid() \n")
+	
+
 	for {
-		time.Sleep(1*time.Second)
+		time.Sleep(10*time.Millisecond)
 		select{
 		
 
 		
 	
 		case newAuctionObject := <- NewAuctionInfoToTimerCh:
-			fmt.Print("mottok eit bud!-------\n")
+			fmt.Print("----------mottok eit bud!-------\n")
 			//Number_of_elevators = newAuctionObject.Number_of_elevators
 			if newAuctionObject.Direction == 1 && Up_order_timer[newAuctionObject.Floor]== 0{
 				Up_order_timer[newAuctionObject.Floor] = AUCTIONTIME*newAuctionObject.Add
@@ -102,33 +83,46 @@ func remember_standing_bid(){
 }
 
 
-func add_handle_timer_for_new_system_data_update(){
-	time.Sleep(1*time.Second)
-	nPO := <- NewPeripheralOrderCh
-	Handle_q_timer[nPO.Floor][(nPO.Elevator_number*2)+nPO.Direction] = nPO.Bid
+func Add_handle_timer_for_new_system_data_update(){
+	fmt.Print("-------- hallo from add_handle_timer_for_new_system_data_update()-\n")
+	for{
+		time.Sleep(1*time.Second)
+		nPO := <- NewPeripheralOrderCh
+		Handle_q_timer[nPO.Floor][(nPO.Elevator_number*2)+nPO.Direction] = nPO.Bid
+	}
 }
 
-func decrement_and_check_handle_timers(){
+func Decrement_and_check_handle_timers(){
+	fmt.Print("-------- hallo from decrement_and_check_handle_timers \n")
+	for{
 	time.Sleep(1*time.Second)
-	fmt.Print("hallo from decrement_and_check_handle_timers \n")
 	for i := 0; i < types.N_FLOORS-1; i++ {
 		for j := 0; j < 20; j++ {
+			if Handle_q_timer[i][j] == 1{
+				Handle_q_timer[i][j] = 0
+				var NewOrder types.Auction_data
+				NewOrder.Direction = j%2  //dette betyr at up er 0 og down er 1
+				NewOrder.Floor = i
+				Handle_q_timeoutCh <- NewOrder
+			}
 			if Handle_q_timer[i][j] > 0{
 				Handle_q_timer[i][j] = Handle_q_timer[i][j] - 1
 			}
 
 		}
 	}
+	}
 }
 
-func decrement_and_check_auction_timers(){
+func Decrement_and_check_auction_timers(){
+	fmt.Print("-------- hallo from decrement_and_check_auction_timers()\n")
 	
 
 	for{
-		time.Sleep(4*time.Second)
+		//time.Sleep(5*time.Millisecond)
 
 		for i := 0; i < 3; i++ {
-			/*
+			
 			if Up_order_timer[i] > 0{
 				Up_order_timer[i] = Up_order_timer[i] - 1
 			}
@@ -152,12 +146,13 @@ func decrement_and_check_auction_timers(){
 				NotifyWinningBidToManagerCh <- WinningBid
 			}
 			
-			}*/
+			}
+			time.Sleep(DECREMENT_INTERVAL) // maa sikkert endrest paa
 		}	
-		//	time.Sleep(DECREMENT_INTERVAL) // maa sikkert endrest paa
+		
 		
 	}
-}
+
 
 /*
 Liker ikke at både main og go rutine sleeper
