@@ -27,13 +27,13 @@ func main(){
 
 
 	fmt.Print("-------- hallo from main --------------\n")
-	go timer.Funk()
+	
 	go determine_next_floor()
 	go timer.Decrement_and_check_handle_timers()
 	go timer.Decrement_and_check_auction_timers()
-	go timer.Remember_standing_bid()
+	
 	go timer.Add_handle_timer_for_new_system_data_update()
-	go Run()
+	Run()
 	fmt.Print("-------- oppretter tullebud \n")
 	var Tullebud types.Auction_data
 	Tullebud.Bid = 3
@@ -53,7 +53,7 @@ func main(){
 	//NotifyWinningBidToManagerCh <- Tullebud
 	
 
-	time.Sleep(100*time.Second)
+	time.Sleep(30*time.Second)
 
 }
 
@@ -77,23 +77,57 @@ func Run(){
 
 }
 
-/*
-//go rutine for å ta i mot nye ordre i sys_dat
-func recive_system_data_from_com(){
-	new_system_data := <- System_data_sendToManagerCh
-	return new_system_data
-}
-*/
-func listen_for_com(){
+
+func manager_listen_for_com(){
 	for{
 		time.Sleep(time.Millisecond*10)
 		select{
+
 		case new_system_data := <- com.System_data_sendToManagerCh:
-			//trigge ny budrunde
-			fmt.Printf("---Ny systemdata\n %v",new_system_data)
-		case new_bid := <- com.Auction_bid_sendToManagerCh:
-			//trigge ny budrunde
-			fmt.Printf("---nytt bud\n %v",new_bid)
+			fmt.Printf("---Ny systemdata fra com til manager\n %v",new_system_data)
+
+
+		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
+			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v",new_external_auction_data)
+			new_internal_bid := cost.Calculate_cost(System_data, new_external_auction_data)
+			
+			if new_internal_bid < new_external_auction_data.Bid{
+				new_external_auction_data.Elevator_IP = types.MY_IP            
+				new_external_auction_data.Bid = new_internal_bid
+				new_external_auction_data.Add = 1
+				com.Auction_bid_sendToComCh <- new_external_auction_data
+				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
+				
+			}else if new_internal_bid > new_external_auction_data.Bid{
+				new_external_auction_data.Elevator_IP = types.MY_IP            
+				new_external_auction_data.Bid = 0
+				new_external_auction_data.Add = 0
+				com.Auction_bid_sendToComCh <- new_external_auction_data
+				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
+oml
+			}else if new_internal_bid == new_external_auction_data.Bid{ 
+
+				if new_external_auction_data.Elevator_IP < types.MY_IP{
+					new_external_auction_data.Elevator_number = types.MY_IP                   
+					new_external_auction_data.Bid = new_internal_bid
+					new_external_auction_data.Add = 1
+					com.Auction_bid_sendToComCh <- new_external_auction_data
+					timer.NewAuctionInfoToTimerCh <- new_external_auction_data 
+				}
+			}
+			
+		case new_system_data_update := <- com.Update_system_data_sendToManagerCh:
+			fmt.Printf("---ny system data update fra com til manager\n %v",system_data_update)
+			switch{
+				case new_system_data_update.Matrix_type == 0: //  UpAuction_q
+					System_data.M_UpAuction_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
+				case new_system_data_update.Matrix_type == 1: // DownAuction_q
+					System_data.M_DownAuction_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
+				//case new_system_data_update.Matrix_type == 2: // handel_q    //usikker paa om denne funksjonaliteten er oensket 
+				//	System_data.M_handle_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
+				case new_system_data_update.Matrix_type == 3: // internal out
+					System_data.M_internal_elev_out[new_system_data_update.Floor_n][new_system_data_update.Direction+MY_NUMBER*2] = 1 // andre kan aldri slette interne ut-bestillinger
+			}
 		}
 	}
 }
@@ -106,7 +140,8 @@ func listen_for_timeout(){
 			//trigge ny budrunde
 			fmt.Printf("---Nokken har somla vi maa trigge ny budrunde\n %v",peripheral_timout)
 		case won_assignment := <- timer.NotifyWinningBidToManagerCh:
-			//trigge ny budrunde
+			System_data.M_handle_q[won_assignment.Floor][types.MY_NUMBER*2+won_assignment.Direction]=
+
 			fmt.Printf("---Vi vant budrunda, det maa vi fikse\n %v",won_assignment)
 		}
 	}
@@ -118,6 +153,43 @@ func start_auction(external_bid types.Auction_data){ //lage to funskjoner for fo
 
 	}
 }
+
+func determine_next_floor(){
+// legge til metode for å endre direction i tilfelle liste i dir retning er tom
+		if Elevator_state.Direction == types.RUNDOWN{
+			for i := types.N_FLOORS; i > 0; i-- {
+				if System_data.M_handle_q[1][i]==1{
+					elevator.Next_floor = i
+				}
+			}
+		}else if Elevator_state.Direction == types.RUNUP{
+			for i := 0; i > types.N_FLOORS; i++ {
+				if System_data.M_handle_q[0][i]==1{
+					elevator.Next_floor = i
+				}	
+			}
+		}
+}
+
+//go rutine for å motta kvittering i fra heis på at etasje er besøkt /ordre er utført 
+func delete_executed_order(){
+	order_to_delete := <- elevator.Next_floor_doneCh 
+//dette funker ikke helt som vi tenker at det skal, mulig å bare slukke en lampe
+	System_data.M_handle_q[0][order_to_delete] = 0
+	System_data.M_handle_q[1][order_to_delete] = 0
+	System_data.M_internal_elev_out[types.MY_NUMBER][order_to_delete] = 0   /*myElevatorNumber must fiks ------*/
+
+}
+
+/*
+//go rutine for å ta i mot nye ordre i sys_dat
+func recive_system_data_from_com(){
+	new_system_data := <- System_data_sendToManagerCh
+	return new_system_data
+}
+*/
+
+/*
 //rutine for å sende sys_dat ved oppdatering og jevne mellomrom
 func send_system_data_to_com(){
 	//com.System_data_sendToComCh <- updated_system_data
@@ -141,6 +213,8 @@ func recive_bid_from_com(){
 }
 */
 
+
+
 //go rutine for å instruere heis om neste etasje
 
 /*
@@ -152,32 +226,7 @@ aldri endre retning før man har tatt øverste/nederste bestilling.
 
 
 */
-func determine_next_floor(){
-// legge til metode for å endre direction i tilfelle liste i dir retning er tom
-		if Elevator_state.Direction == types.RUNDOWN{
-			for i := types.N_FLOORS; i > 0; i-- {
-				if System_data.M_handle_q[1][i]==1{
-					elevator.Next_floor = i
-				}
-			}
-		}else if Elevator_state.Direction == types.RUNUP{
-			for i := 0; i > types.N_FLOORS; i++ {
-				if System_data.M_handle_q[0][i]==1{
-					elevator.Next_floor = i
-				}	
-			}
-		}
-}
 
-//go rutine for å motta kvittering i fra heis på at etasje er besøkt /ordre er utført 
-func execute_order(){
-	order_to_delete := <- elevator.Next_floor_doneCh 
-//dette funker ikke helt som vi tenker at det skal, hais kan skifte retning
-	System_data.M_handle_q[0][order_to_delete] = 0
-	System_data.M_handle_q[1][order_to_delete] = 0
-	System_data.M_internal_elev_out[1][order_to_delete] = 0   /*myElevatorNumber must fiks ------*/
-
-}
 /* kan slettes
 func external_auction_monitor(){
 
@@ -191,17 +240,10 @@ func local_auction_monitor(){
 }
 */
 
-
+/*
 func manage_incomming_data(){
 	for{
 		select{
-
-		
-		case new_system_data := <- com.System_data_sendToManagerCh:
-			fmt.Printf("Mottar system data fra com til Manager\n")
-			// mottok systemdata fra com
-			System_data = new_system_data
-			// gjør noe fornuftig
 
 		case new_Local_order := <- elevator.Local_orderCh:
 			new_internal_bid := cost.Calculate_cost(System_data, new_Local_order)
@@ -247,7 +289,8 @@ func manage_incomming_data(){
 		}
 	}
 }
-
+*/
+/*
 func Auction_round(New_auction_data types.Auction_data)bool{
 	local_bid := cost.Calculate_cost(System_data, New_auction_data)
 	var local_best_bid bool = true
@@ -262,7 +305,7 @@ func Auction_round(New_auction_data types.Auction_data)bool{
 	}
 	return local_best_bid
 }
-
+*/
 /*/dette er overflodig:
 func manage_outgoing_data(){
 	for{

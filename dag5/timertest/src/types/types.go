@@ -4,8 +4,13 @@ import(
 	"time"
 )
 
-const(
+var(
 	MY_IP = 123
+	MY_NUMBER = 0
+
+)
+const(
+	
 	MAX_N_ELEVATORS = 10
 	N_FLOORS = 4
 	N_BUTTONS = 3
@@ -21,6 +26,9 @@ const(
 	RUNUP = 1
 	STOPP = 0
 	RUNDOWN = -1
+
+	UP = 0
+	DOWN = 1
 )
 
 
@@ -56,9 +64,9 @@ type(
 		Direction int 
 		Matrix_type int
 		Elevator_IP int
-		Elevator_number int
+		Elevator_number int 
 		Add int
-		Number_of_elevators int
+		//Number_of_elevators int
 
 	}
 )

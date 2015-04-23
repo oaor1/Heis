@@ -5,7 +5,7 @@ import(
 )
 
 func Calculate_cost(System_data types.System_data, New_auction_data types.Auction_data) int{
-	cost := 7
+	
 	up_orders := 0
 	dwn_orders := 0
 	//overlap_orders := 0
@@ -28,5 +28,6 @@ func Calculate_cost(System_data types.System_data, New_auction_data types.Auctio
 		//if System_data.internal_elev_out[myNumber][New_auction_data.]
 		
 	}
+	cost := 7
 	return cost
 }

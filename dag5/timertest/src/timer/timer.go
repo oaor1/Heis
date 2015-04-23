@@ -39,18 +39,52 @@ func Listen_for_auctiondata_from_manager(){
 		case new_auction_data := <- NewAuctionInfoToTimerCh:
 			//mottar bud fra manager
 			fmt.Printf("---mottar ny budinfo fra manager \n %v",new_auction_data)
+			switch{
+			case new_auction_data.Direction == types.UP:
+				Up_order_timer[new_auction_data.Floor]=AUCTIONTIME*new_auction_data.Add
+				Standing_upwards_bid[new_auction_data.Floor]=new_auction_data.Bid*new_auction_data.Add
+			case new_auction_data.Direction == types.DOWN:
+				Down_order_timer[new_auction_data.Floor]=AUCTIONTIME*new_auction_data.Add
+				Standing_downwards_bid[new_auction_data.Floor]=new_auction_data.Bid*new_auction_data.Add
+			default:
+				fmt.Printf("Dette skal ikkje skje .. timer ln 35 mottok eit ugyldig bud")
+			}
 		case new_peripheral_order := <- NewPeripheralOrderCh:
+			Handle_q_timer[new_peripheral_order.Floor][new_peripheral_order.Elevator_number*2+new_peripheral_order.Direction]=new_peripheral_order.Bid
 			//ny perifer ordre maa legges til i timout queue
 			fmt.Printf("---nokken har tatt på seg eit oppdrag, vi maa ta tida\n %v",new_peripheral_order)
 		}
 	}
-
-
-
-	
-
 }
 
+
+
+/*
+func Remember_standing_bid(){
+	fmt.Print("-------- hallo from remember_standing_bid() \n")
+	
+
+	for {
+		time.Sleep(10*time.Millisecond)
+		select{
+		
+
+			case newAuctionObject := <- NewAuctionInfoToTimerCh:
+			fmt.Print("----------mottok eit bud!-------\n")
+			//Number_of_elevators = newAuctionObject.Number_of_elevators
+			if newAuctionObject.Direction == 1 && Up_order_timer[newAuctionObject.Floor]== 0{
+				Up_order_timer[newAuctionObject.Floor] = AUCTIONTIME*newAuctionObject.Add
+				Standing_upwards_bid[newAuctionObject.Floor] = newAuctionObject.Bid*newAuctionObject.Add
+			}else if newAuctionObject.Direction == 0 && Up_order_timer[newAuctionObject.Floor]== 0{
+				Down_order_timer[newAuctionObject.Floor] = AUCTIONTIME*newAuctionObject.Add
+				Standing_downwards_bid[newAuctionObject.Floor] = newAuctionObject.Bid*newAuctionObject.Add
+			}
+		}
+	
+	}
+}
+*/
+/*
 func Funk(){
 	fmt.Print("-------- hallo from funk() \n")
 	for{
@@ -68,34 +102,7 @@ func Funk(){
 		}
 	}
 }
-
-func Remember_standing_bid(){
-	fmt.Print("-------- hallo from remember_standing_bid() \n")
-	
-
-	for {
-		time.Sleep(10*time.Millisecond)
-		select{
-		
-
-		
-	
-		case newAuctionObject := <- NewAuctionInfoToTimerCh:
-			fmt.Print("----------mottok eit bud!-------\n")
-			//Number_of_elevators = newAuctionObject.Number_of_elevators
-			if newAuctionObject.Direction == 1 && Up_order_timer[newAuctionObject.Floor]== 0{
-				Up_order_timer[newAuctionObject.Floor] = AUCTIONTIME*newAuctionObject.Add
-				Standing_upwards_bid[newAuctionObject.Floor] = newAuctionObject.Bid*newAuctionObject.Add
-			}else if newAuctionObject.Direction == 0 && Up_order_timer[newAuctionObject.Floor]== 0{
-				Down_order_timer[newAuctionObject.Floor] = AUCTIONTIME*newAuctionObject.Add
-				Standing_downwards_bid[newAuctionObject.Floor] = newAuctionObject.Bid*newAuctionObject.Add
-			}
-		}
-	
-	}
-}
-
-
+*/
 func Add_handle_timer_for_new_system_data_update(){
 	fmt.Print("-------- hallo from add_handle_timer_for_new_system_data_update()-\n")
 	for{
@@ -148,6 +155,7 @@ func Decrement_and_check_auction_timers(){
 				var WinningBid types.Auction_data
 				WinningBid.Floor = i
 				WinningBid.Matrix_type = 0 // maa agsaa legge til i handle timer
+				Handle_q_timer[WinningBid.Floor][types.MY_NUMBER*2]=Standing_upwards_bid[WinningBid.Floor]
 				NotifyWinningBidToManagerCh <- WinningBid
 
 			}
@@ -156,6 +164,7 @@ func Decrement_and_check_auction_timers(){
 				var WinningBid types.Auction_data
 				WinningBid.Floor = i
 				WinningBid.Matrix_type = 1
+				Handle_q_timer[WinningBid.Floor][(types.MY_NUMBER*2)+1]=Standing_downwards_bid[WinningBid.Floor]
 				NotifyWinningBidToManagerCh <- WinningBid
 			}
 			

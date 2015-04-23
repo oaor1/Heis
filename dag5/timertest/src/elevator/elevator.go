@@ -15,8 +15,8 @@ const(
 
 var(
 	//for comunication with manager
-	Next_floor int = 2
-	next_floor int = 2
+	Next_floor int = 1
+	next_floor int = 1
 	Next_floorCh = make(chan int,1)
 	Next_floor_doneCh = make (chan int)
 	current_floor int
