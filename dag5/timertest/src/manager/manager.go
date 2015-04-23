@@ -93,17 +93,17 @@ func start_auction(external_bid types.Auction_data){ //lage to funskjoner for fo
 }
 //rutine for å sende sys_dat ved oppdatering og jevne mellomrom
 func send_system_data_to_com(){
-	com.System_data_sendToComCh <- updated_system_data
+	//com.System_data_sendToComCh <- updated_system_data
 }
 
 //rutine for å sende bud
 func send_Auction_data_to_com(){
-	Auction_bid_sendToComCh <- bid_offer
+	//Auction_bid_sendToComCh <- bid_offer
 }
 
 //rutine for å sende updated system data
 func send_System_data_update_to_com(){
-	Update_system_data_sendToComCh <- system_data_update
+	//Update_system_data_sendToComCh <- system_data_update
 }
 
 /*
@@ -128,14 +128,14 @@ aldri endre retning før man har tatt øverste/nederste bestilling.
 func determine_next_floor() int{
 // legge til metode for å endre direction i tilfelle liste i dir retning er tom
 		if Elevator_state.Direction == types.RUNDOWN{
-			for i := N_FLOORS; i > 0; i-- {
-				if system_data.M_handel_q[1][i]==1{
+			for i := types.N_FLOORS; i > 0; i-- {
+				if System_data.M_handle_q[1][i]==1{
 					elevator.Next_floorCh <- i
 				}
 			}
 		}else if Elevator_state.Direction == types.RUNUP{
-			for i := 0; i > N_FLOORS; i++ {
-				if system_data.M_handel_q[0][i]==1{
+			for i := 0; i > types.N_FLOORS; i++ {
+				if System_data.M_handle_q[0][i]==1{
 					elevator.Next_floorCh <- i
 				}	
 			}
