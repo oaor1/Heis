@@ -2,7 +2,12 @@ package types
 
 import(
 	"time"
+	"net"
+	"strings"
+	"strconv"
 )
+
+var MY_IP = GetmyIP()
 
 const(
 	MAX_N_ELEVATORS = 10
@@ -21,7 +26,6 @@ const(
 	STOPP = 0
 	RUNDOWN = -1
 )
-
 
 
 type(
@@ -60,3 +64,10 @@ type(
 
 	}
 )
+
+func GetmyIP()int{
+	tempAddr, _ := net.ResolveTCPAddr("tcp4", "google.com:80")
+	tempConn, _ := net.DialTCP("tcp4", nil, tempAddr)
+	lastByte, _ := strconv.Atoi(strings.Split(strings.Split(tempConn.LocalAddr().String(), ":")[0], ".")[3])
+	return lastByte
+}

@@ -4,10 +4,14 @@
 package main
 
 import(
+	//"os"
+	"net"
 	"fmt"
 	"time"
 	"./driver"
 	"runtime"
+	"strings"
+	"strconv"
 )
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -19,7 +23,7 @@ func main() {
 	go order_button_test()
 	go run_elev()
 
-	time.Sleep(60*time.Second)
+	time.Sleep(1*time.Second)
 	driver.Elev_set_stop_lamp(0)
 	driver.Elev_set_motor_direction(0)
 }
@@ -28,13 +32,23 @@ func run_elev(){
 	for{
 		driver.Elev_set_motor_direction(1)
 
-		time.Sleep(1*time.Second)
+		time.Sleep(50*time.Millisecond)
 
 		driver.Elev_set_door_open_lamp(1)
 
 		driver.Elev_set_motor_direction(-1)
 
-		time.Sleep(1*time.Second)
+		time.Sleep(100*time.Millisecond)
+
+		driver.Elev_set_motor_direction(1)
+
+		time.Sleep(100*time.Millisecond)
+
+		driver.Elev_set_door_open_lamp(1)
+
+		driver.Elev_set_motor_direction(-1)
+
+		time.Sleep(50*time.Millisecond)
 	}
 }
 
