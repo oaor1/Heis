@@ -5,6 +5,7 @@ import(
 )
 
 const(
+	MY_IP = 123
 	MAX_N_ELEVATORS = 10
 	N_FLOORS = 4
 	N_BUTTONS = 3
@@ -42,10 +43,11 @@ type(
 	Handle_confirmation int  //manager faar bekreftelse paa etasje besok
 
 	Update_system_data struct{
-		Add_order bool //true for add and false for delete
+		Add_order int //1 for add and 0 for delete
 		Matrix_type int //0-3, Upauction, downauction, handel, internal out
 		Elevator_n int
-		floor_n int
+		Floor_n int
+		Direction int // 0 = up  ----  1 DOWN
 	}
 
 	Auction_data struct{
@@ -53,6 +55,7 @@ type(
 		Floor int
 		Direction int 
 		Matrix_type int
+		Elevator_IP int
 		Elevator_number int
 		Add int
 		Number_of_elevators int

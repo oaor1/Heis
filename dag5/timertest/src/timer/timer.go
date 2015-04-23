@@ -32,7 +32,19 @@ var(
 
 
 
-func Kanaliser(){
+func Listen_for_auctiondata_from_manager(){
+	for{
+		time.Sleep(time.Millisecond*10)
+		select{
+		case new_auction_data := <- NewAuctionInfoToTimerCh:
+			//mottar bud fra manager
+			fmt.Printf("---mottar ny budinfo fra manager \n %v",new_auction_data)
+		case new_peripheral_order := <- NewPeripheralOrderCh:
+			//ny perifer ordre maa legges til i timout queue
+			fmt.Printf("---nokken har tatt på seg eit oppdrag, vi maa ta tida\n %v",new_peripheral_order)
+		}
+	}
+
 
 
 	
@@ -47,6 +59,7 @@ func Funk(){
 
 		select{
 		case vinnarbud := <- NotifyWinningBidToManagerCh:
+
 			fmt.Printf("Vi Vant Vi VaAnT !!! \n %v \n",vinnarbud)
 		case nokken_somla := <- Handle_q_timeoutCh:
 			fmt.Printf("-----Nokken har somla, \n %v \n",nokken_somla)
@@ -119,7 +132,7 @@ func Decrement_and_check_auction_timers(){
 	
 
 	for{
-		//time.Sleep(5*time.Millisecond)
+		
 
 		for i := 0; i < 3; i++ {
 			
@@ -147,14 +160,11 @@ func Decrement_and_check_auction_timers(){
 			}
 			
 			}
-			time.Sleep(DECREMENT_INTERVAL) // maa sikkert endrest paa
+			time.Sleep(DECREMENT_INTERVAL) 
 		}	
 		
 		
 	}
 
 
-/*
-Liker ikke at både main og go rutine sleeper
-*/
 

@@ -33,6 +33,23 @@ Next_floor_to_elevator = make (chan int)
 */
 )
 
+func com_listen_for_manager(){
+	for{
+		time.Sleep(time.Millisecond*10)
+		select{
+		case new_system_data := <- System_data_sendToComCh:
+			
+			fmt.Printf("---Ny systemdata fra manager til com\n %v",new_system_data)
+		case new_bid := <- Auction_bid_sendToComCh:
+			
+			fmt.Printf("---nytt bud fra manager til com\n %v",new_bid)
+		case system_data_update := <- Update_system_data_sendToComCh:
+			fmt.Printf("---ny system data update fra manager til com \n %v",system_data_update)
+		}
+	}
+}
+
+
 func recive(){	
     udpAddress, err := net.ResolveUDPAddr(CONN_type, BROADCAST_IP+":"+CONN_REC)
 	if err != nil{
