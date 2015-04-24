@@ -65,7 +65,7 @@ func manager_listen_for_elevator(){
 	for{
 		select{
 			case order_to_delete := <- elevator.Next_floor_doneCh:
-				fmt.Printf("dette skjedde")
+				fmt.Printf("Sletter ordre")
 				System_data.M_handle_q[order_to_delete][0] = 0  // dette slukker begge lys/køer ved besøk
 				System_data.M_handle_q[order_to_delete][1] = 0
 				//oppdater handle q i timer og send sys dat update til alle andre heisane
@@ -86,6 +86,26 @@ func manager_listen_for_elevator(){
 				System_data.M_internal_elev_out[new_internal_order][types.MY_NUMBER]=1
 				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2]=1  // dette er litt juks
 				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2+1]=1
+
+//				fmt.Printf("Internal elev out: %v \n", System_data.M_internal_elev_out)
+//				fmt.Printf("handel kø: %v \n", System_data.M_internal_elev_out)
+				fmt.Printf("\n")
+				for i := 0; i < 4; i++ {
+					fmt.Printf("\n")
+					for j := 0; j < 10; j++ {
+						fmt.Printf("%d ",System_data.M_internal_elev_out[i][j])
+					}
+				}
+				fmt.Printf("\n")
+				fmt.Printf("\n")
+				for i := 0; i < 4; i++ {
+					fmt.Printf("\n")
+					for j := 0; j < 20; j++ {
+						fmt.Printf("%d ",System_data.M_handle_q[i][j])
+					}
+				}
+				fmt.Printf("\n")
+
 			case Elevator_state := <- elevator.States_to_managerCh:
 				Bullshit_incrementor += Elevator_state.Direction
 				//fmt.Printf("mottok elevator state %v \n", Elevator_state)
@@ -178,6 +198,14 @@ func listen_for_timeout(){
 	}
 }
 //timer.Standing_upwards_bid[won_assignment.Floor]
+
+/*
+case new_internal_order := <- elevator.Internal_orderCh:
+				fmt.Printf("fikk noe på internal order channel\n")
+				System_data.M_internal_elev_out[new_internal_order][types.MY_NUMBER]=1
+				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2]=1  // dette er litt juks
+				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2+1]=1
+*/
 
 
 func determine_next_floor(){
