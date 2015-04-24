@@ -38,6 +38,7 @@ func main(){
 	fmt.Print("-------- hallo from main --------------\n")
 	
 	elevator.Run()
+	
 	go listen_for_timeout()
 	go determine_next_floor()
 	go manager_listen_for_elevator()
@@ -50,12 +51,7 @@ func main(){
 	
 	go com.Com_listen_for_manager()
 	
-	go elevator.DoorTimer()
-	go elevator.FloorLigths()
-	go elevator.Update_channels()
-	go elevator.Read_order_buttons()
-	go elevator.Print()
-	go elevator.Idle()
+	
 	
 	
 
@@ -113,6 +109,7 @@ func manager_listen_for_com(){
 
 		case new_system_data := <- com.System_data_sendToManagerCh:
 			fmt.Printf("---Ny systemdata fra com til manager\n %v",new_system_data)
+			//til gjennoppstandelse og fødsel mm
 
 
 		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
@@ -205,6 +202,7 @@ func determine_next_floor(){
 						if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
 						elevator.Next_floorCh <- i
 						break
+					
 					} 
 					}
 				}else if Elevator_state.Direction == types.STOPP{
