@@ -81,22 +81,21 @@ func Add_handle_timer_for_new_system_data_update(){
 func Decrement_and_check_handle_timers(){
 	fmt.Print("-------- hallo from decrement_and_check_handle_timers \n")
 	for{
-	time.Sleep(1*time.Second)
-	for i := 0; i < types.N_FLOORS-1; i++ {
-		for j := 0; j < 20; j++ {
-			if Handle_q_timer[i][j] == 1{
-				Handle_q_timer[i][j] = 0
-				var NewOrder types.Auction_data
-				NewOrder.Direction = j%2  //dette betyr at up er 0 og down er 1
-				NewOrder.Floor = i
-				Handle_q_timeoutCh <- NewOrder
+		time.Sleep(1*time.Second)
+		for i := 0; i < types.N_FLOORS-1; i++ {
+			for j := 0; j < 20; j++ {
+				if Handle_q_timer[i][j] == 1{
+					Handle_q_timer[i][j] = 0
+					var NewOrder types.Auction_data
+					NewOrder.Direction = j%2  //dette betyr at up er 0 og down er 1
+					NewOrder.Floor = i
+					Handle_q_timeoutCh <- NewOrder
+				}
+				if Handle_q_timer[i][j] > 0{
+					Handle_q_timer[i][j] = Handle_q_timer[i][j] - 1
+				}
 			}
-			if Handle_q_timer[i][j] > 0{
-				Handle_q_timer[i][j] = Handle_q_timer[i][j] - 1
-			}
-
 		}
-	}
 	}
 }
 
@@ -133,13 +132,10 @@ func Decrement_and_check_auction_timers(){
 				Handle_q_timer[WinningBid.Floor][(types.MY_NUMBER*2)+1]=Standing_downwards_bid[WinningBid.Floor]
 				NotifyWinningBidToManagerCh <- WinningBid
 			}
-			
-			}
-			time.Sleep(DECREMENT_INTERVAL) 
-		}	
-		
-		
-	}
+		}
+	time.Sleep(DECREMENT_INTERVAL) 
+	}	
+}
 
 
 

@@ -83,7 +83,7 @@ func manager_listen_for_elevator(){
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = new_local_bid
 				new_external_auction_data.Add = 1
-				com.Auction_bid_sendToComCh <- new_external_auction_data
+//				com.Auction_bid_sendToComCh <- new_external_auction_data
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 			case new_internal_order := <- elevator.Internal_orderCh:
 				fmt.Printf("denne også \n")
@@ -93,11 +93,7 @@ func manager_listen_for_elevator(){
 			case Elevator_state := <- elevator.States_to_managerCh:
 				Bullshit_incrementor += Elevator_state.Direction
 				//fmt.Printf("mottok elevator state %v \n", Elevator_state)
-
-
-
 		} 
-
 	time.Sleep(100*time.Millisecond)
 	}	
 }
@@ -191,36 +187,33 @@ func listen_for_timeout(){
 func determine_next_floor(){
 // legge til metode for å endre direction i tilfelle liste i dir retning er tom
 	for{
-
 		if Elevator_state.Direction == types.RUNDOWN{
 			for i := Elevator_state.Last_floor; i >= 0; i-- {
 				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
 					elevator.Next_floorCh <- i
 					break
-					}else if Elevator_state.Direction == types.RUNUP{
-					for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
-						if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
-						elevator.Next_floorCh <- i
-						break
-					
-					} 
-					}
-				}else if Elevator_state.Direction == types.STOPP{
-					for i := 0; i <types.N_FLOORS; i++ {
-						if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1||System_data.M_handle_q[i][types.DOWN]==1{
-						elevator.Next_floorCh <- i
-						break
-						}
-					}
 				}
-				
-			time.Sleep(1000*time.Millisecond)
-		
-		}
-		
+			}
+		}else if Elevator_state.Direction == types.RUNUP{
+			for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
+				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
+					elevator.Next_floorCh <- i
+					break
+				} 
+			}
+		}else if Elevator_state.Direction == types.STOPP{
+			for i := 0; i <types.N_FLOORS; i++ {
+				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1||System_data.M_handle_q[i][types.DOWN]==1{
+					elevator.Next_floorCh <- i
+					break
+				}
+				break
+			}
+		}		
+		time.Sleep(1000*time.Millisecond)
+	}
 }
-}
-}
+
 
 func start_auction(external_bid types.Auction_data){ //lage to funskjoner for forskjellige triggere
 	new_internal_bid := cost.Calculate_cost(System_data, external_bid)

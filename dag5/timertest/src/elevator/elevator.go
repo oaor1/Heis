@@ -231,10 +231,11 @@ func Read_order_buttons(){
 					}else if j==2 && driver.Elev_get_button_signal(j,i)==1{
 						fmt.Printf("print slo gjennom \n")
 						Internal_orderCh <- i
+						fmt.Println("sendt internal_orderCh")
 				}
 			}
 		}
-		time.Sleep(5*time.Millisecond)
+	time.Sleep(5*time.Millisecond)
 	}
 }
 
