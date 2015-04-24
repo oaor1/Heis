@@ -215,23 +215,23 @@ func determine_next_floor(){
 			for i := Elevator_state.Last_floor; i >= 0; i-- {
 				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
 					elevator.Next_floorCh <- i
-				}
 				break
+				}
 			}
 		}else if Elevator_state.Direction == types.RUNUP{
 			for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
 				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
 					elevator.Next_floorCh <- i
-				}
 				break
+				}
 			}
 		}else if Elevator_state.Direction == types.STOPP{
 			for i := 0; i <types.N_FLOORS; i++ {
-				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1||System_data.M_handle_q[i][types.DOWN]==1{
+				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1||System_data.M_handle_q[i][types.DOWN]==1{
 					fmt.Printf("DETTE ER ET TALL SOM BLIR SENDT %d \n",i)
 					elevator.Next_floorCh <- i
-				}
 				break
+				}
 			}
 		}		
 		time.Sleep(1000*time.Millisecond)
