@@ -38,7 +38,7 @@ func Listen_for_auctiondata_from_manager(){
 		select{
 		case new_auction_data := <- NewAuctionInfoToTimerCh:
 			//mottar bud fra manager
-			fmt.Printf("---mottar ny budinfo fra manager \n %v",new_auction_data)
+//			fmt.Printf("---mottar ny budinfo fra manager \n %v",new_auction_data)
 			switch{
 			case new_auction_data.Direction == types.UP:
 				fmt.Printf("---kom så langt 1 \n ")

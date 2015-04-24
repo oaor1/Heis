@@ -84,9 +84,7 @@ func Idle(){
 				case driver.Elev_get_stop_signal() == 1:
 					Stopp()
 					break
-				default:
-					
-				
+				default:	
 			}	
 		}
 		time.Sleep(40*time.Millisecond)
@@ -128,7 +126,6 @@ func Up(){
 				Open()
 			case driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1:
 				ElevDirection = types.RUNDOWN
-				driver.Elev_set_motor_direction(types.STOPP)
 				fmt.Println("saftey set down\n")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
@@ -155,7 +152,6 @@ func Down(){
 				Open()
 			case driver.Elev_get_floor_sensor_signal() == 0:
 				ElevDirection = types.RUNDOWN
-				driver.Elev_set_motor_direction(types.STOPP)
 				fmt.Println("saftey set down\n")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
@@ -187,6 +183,12 @@ func Stopp(){
 
 func Update_channels(){
 	for{
+		select{
+		case next_floor = <- Next_floorCh:
+			wasJustHere = false
+			fmt.Println("Mottok next_floor fra Next_floorCh\n")
+		default:
+		}
 		if driver.Elev_get_floor_sensor_signal() >= 0{
 			current_floor = driver.Elev_get_floor_sensor_signal()
 		}
@@ -194,13 +196,7 @@ func Update_channels(){
 		Elevator_state.Last_floor=current_floor
 		States_to_managerCh <- Elevator_state
 		//fmt.Printf("har sendt elev state")
-		select{
-		case next_floor = <- Next_floorCh:
-			wasJustHere = false
-			fmt.Println("Mottok next_floor fra Next_floorCh\n")
-		default:
-		}
-	time.Sleep(100*time.Millisecond)	
+	time.Sleep(10*time.Millisecond)	
 	}
 }
 
@@ -229,7 +225,7 @@ func Read_order_buttons(){
 						External_orderCh <- new_order
 						
 					}else if j==2 && driver.Elev_get_button_signal(j,i)==1{
-						fmt.Printf("print slo gjennom \n")
+						fmt.Printf("intetrnal button pushed \n")
 						Internal_orderCh <- i
 						fmt.Println("sendt internal_orderCh")
 				}

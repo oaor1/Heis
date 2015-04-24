@@ -37,12 +37,12 @@ func main(){
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Print("-------- hallo from main --------------\n")
 	
-	elevator.Run()
+	go elevator.Run()
 	
+	go manager_listen_for_elevator()
 	go listen_for_timeout()
 	go determine_next_floor()
-	go manager_listen_for_elevator()
-	
+
 	go timer.Decrement_and_check_handle_timers()
 	go timer.Decrement_and_check_auction_timers()
 	go timer.Add_handle_timer_for_new_system_data_update()
@@ -61,13 +61,8 @@ func main(){
 
 }
 
-
-
-
-
 func manager_listen_for_elevator(){
 	for{
-		
 		select{
 			case order_to_delete := <- elevator.Next_floor_doneCh:
 				fmt.Printf("dette skjedde")
@@ -83,10 +78,10 @@ func manager_listen_for_elevator(){
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = new_local_bid
 				new_external_auction_data.Add = 1
-//				com.Auction_bid_sendToComCh <- new_external_auction_data
+				com.Auction_bid_sendToComCh <- new_external_auction_data
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 			case new_internal_order := <- elevator.Internal_orderCh:
-				fmt.Printf("denne også \n")
+				fmt.Printf("fikk noe på internal order channel\n")
 				System_data.M_internal_elev_out[types.MY_NUMBER][new_internal_order]=1
 				System_data.M_handle_q[types.MY_NUMBER*2][new_internal_order]=1  // dette er litt juks
 				System_data.M_handle_q[types.MY_NUMBER*2+1][new_internal_order]=1
@@ -109,7 +104,7 @@ func manager_listen_for_com(){
 
 
 		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
-			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v",new_external_auction_data)
+//			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v",new_external_auction_data)
 			new_internal_bid := cost.Calculate_cost(System_data, new_external_auction_data)
 			
 			if new_internal_bid < new_external_auction_data.Bid{
@@ -138,7 +133,7 @@ func manager_listen_for_com(){
 			}
 			
 		case new_system_data_update := <- com.Update_system_data_sendToManagerCh:
-			fmt.Printf("---ny system data update fra com til manager\n %v",new_system_data_update)
+//			fmt.Printf("---ny system data update fra com til manager\n %v",new_system_data_update)
 			switch{
 				case new_system_data_update.Matrix_type == 0: //  UpAuction_q
 					System_data.M_UpAuction_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
@@ -159,7 +154,7 @@ func listen_for_timeout(){
 		select{
 		case peripheral_timout := <- timer.Handle_q_timeoutCh:
 			//trigge ny budrunde
-			fmt.Printf("---Nokken har somla vi maa trigge ny budrunde\n %v",peripheral_timout)
+//			fmt.Printf("---Nokken har somla vi maa trigge ny budrunde\n %v",peripheral_timout)
 			new_local_bid := cost.Calculate_cost(System_data, peripheral_timout)
 			peripheral_timout.Elevator_IP = types.MY_IP            
 			peripheral_timout.Bid = new_local_bid
@@ -168,7 +163,7 @@ func listen_for_timeout(){
 			timer.NewAuctionInfoToTimerCh <- peripheral_timout
 
 		case won_assignment := <- timer.NotifyWinningBidToManagerCh:
-			fmt.Printf("---Vi vant budrunda, det maa vi fikse \n %v " , won_assignment)
+//			fmt.Printf("---Vi vant budrunda, det maa vi fikse \n %v " , won_assignment)
 			if won_assignment.Direction==0{
 				System_data.M_handle_q[won_assignment.Floor][types.MY_NUMBER*2+won_assignment.Direction]=1
 
@@ -191,21 +186,22 @@ func determine_next_floor(){
 			for i := Elevator_state.Last_floor; i >= 0; i-- {
 				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
 					elevator.Next_floorCh <- i
-					break
 				}
+				break
 			}
 		}else if Elevator_state.Direction == types.RUNUP{
 			for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
 				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
 					elevator.Next_floorCh <- i
-					break
-				} 
+				}
+				break
 			}
 		}else if Elevator_state.Direction == types.STOPP{
 			for i := 0; i <types.N_FLOORS; i++ {
 				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1||System_data.M_handle_q[i][types.DOWN]==1{
+					fmt.Print("DETTE ER ET TALL %d",i)
 					elevator.Next_floorCh <- i
-					break
+					fmt.Println("therhfasdddddddddkjearrrrrrrrrrrrrrrrrrrrgweeeeeeeeeeeeeeG")
 				}
 				break
 			}
