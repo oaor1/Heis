@@ -216,22 +216,23 @@ func Read_order_buttons(){
 		for i :=0; i < types.N_FLOORS; i++{
 			for j := 0; j < 3; j++{
 				if driver.Elev_get_button_signal(j,i) > 0{
-					driver.Elev_set_button_lamp(j,i,1)}
+					driver.Elev_set_button_lamp(j,i,1)
+				}
 				if j<2&&driver.Elev_get_button_signal(j,i)==1{
-						var new_order types.Auction_data
-						new_order.Floor = i
-						new_order.Direction = j
+					var new_order types.Auction_data
+					new_order.Floor = i
+					new_order.Direction = j
+					
+					External_orderCh <- new_order
 						
-						External_orderCh <- new_order
-						
-					}else if j==2 && driver.Elev_get_button_signal(j,i)==1{
-						fmt.Printf("intetrnal button pushed \n")
-						Internal_orderCh <- i
-						fmt.Println("sendt internal_orderCh")
+				}else if j==2 && driver.Elev_get_button_signal(j,i)==1{
+					fmt.Printf("SENDER internal_orderCh: %d \n", i )
+					Internal_orderCh <- i
+					fmt.Printf("sendt internal_orderCh: %d \n", i )
 				}
 			}
 		}
-	time.Sleep(5*time.Millisecond)
+	time.Sleep(50*time.Millisecond)
 	}
 }
 

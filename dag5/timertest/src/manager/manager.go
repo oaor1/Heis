@@ -80,11 +80,12 @@ func manager_listen_for_elevator(){
 				new_external_auction_data.Add = 1
 				com.Auction_bid_sendToComCh <- new_external_auction_data
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
+
 			case new_internal_order := <- elevator.Internal_orderCh:
 				fmt.Printf("fikk noe på internal order channel\n")
-				System_data.M_internal_elev_out[types.MY_NUMBER][new_internal_order]=1
-				System_data.M_handle_q[types.MY_NUMBER*2][new_internal_order]=1  // dette er litt juks
-				System_data.M_handle_q[types.MY_NUMBER*2+1][new_internal_order]=1
+				System_data.M_internal_elev_out[new_internal_order][types.MY_NUMBER]=1
+				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2]=1  // dette er litt juks
+				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2+1]=1
 			case Elevator_state := <- elevator.States_to_managerCh:
 				Bullshit_incrementor += Elevator_state.Direction
 				//fmt.Printf("mottok elevator state %v \n", Elevator_state)
@@ -184,14 +185,14 @@ func determine_next_floor(){
 	for{
 		if Elevator_state.Direction == types.RUNDOWN{
 			for i := Elevator_state.Last_floor; i >= 0; i-- {
-				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
+				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
 					elevator.Next_floorCh <- i
 				}
 				break
 			}
 		}else if Elevator_state.Direction == types.RUNUP{
 			for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
-				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
+				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
 					elevator.Next_floorCh <- i
 				}
 				break
@@ -199,9 +200,8 @@ func determine_next_floor(){
 		}else if Elevator_state.Direction == types.STOPP{
 			for i := 0; i <types.N_FLOORS; i++ {
 				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1||System_data.M_handle_q[i][types.DOWN]==1{
-					fmt.Print("DETTE ER ET TALL %d",i)
+					fmt.Printf("DETTE ER ET TALL SOM BLIR SENDT %d \n",i)
 					elevator.Next_floorCh <- i
-					fmt.Println("therhfasdddddddddkjearrrrrrrrrrrrrrrrrrrrgweeeeeeeeeeeeeeG")
 				}
 				break
 			}
