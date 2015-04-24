@@ -194,37 +194,35 @@ func listen_for_timeout(){
 func determine_next_floor(){
 // legge til metode for å endre direction i tilfelle liste i dir retning er tom
 	for{
-		if Elevator_state.Direction == types.RUNDOWN{				
-			for i := types.N_FLOORS; i > 0; i-- {
-				if System_data.M_handle_q[i][0]>0||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{						
-					elevator.Next_floorCh <- i
-					}
-						}
-				}else if Elevator_state.Direction == types.RUNUP{
-				
-					for j := 0; j < types.N_FLOORS; j++ {
-						if System_data.M_handle_q[j][0]>0{
-							elevator.Next_floorCh <- j
-						}	
-				}
-				}else if Elevator_state.Direction == types.STOPP{
-				
-					for k := 0; k < types.N_FLOORS; k++ {
-						if System_data.M_handle_q[k][0]>0 || System_data.M_handle_q[k][1]>0{	
-						elevator.Next_floorCh <- k
-						}	
-					}
-		}
 
-			
-		
+		if Elevator_state.Direction == types.RUNDOWN{
+			for i := Elevator_state.Last_floor; i >= 0; i-- {
+				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
+					elevator.Next_floorCh <- i
+					break
+					}else if Elevator_state.Direction == types.RUNUP{
+					for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
+						if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
+						elevator.Next_floorCh <- i
+						break
+					} 
+					}
+				}else if Elevator_state.Direction == types.STOPP{
+					for i := 0; i <types.N_FLOORS; i++ {
+						if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1||System_data.M_handle_q[i][types.DOWN]==1{
+						elevator.Next_floorCh <- i
+						break
+						}
+					}
+				}
+				
 			time.Sleep(1000*time.Millisecond)
 		
 		}
 		
 }
-
-
+}
+}
 
 func start_auction(external_bid types.Auction_data){ //lage to funskjoner for forskjellige triggere
 	new_internal_bid := cost.Calculate_cost(System_data, external_bid)
