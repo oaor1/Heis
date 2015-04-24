@@ -69,7 +69,9 @@ func Idle(){
 					Down()
 					break
 				case current_floor < next_floor: //neste etasje i odrdre kø er over
+					fmt.Printf("current floor: %d, Direction: %d, next_floor: %d\n" ,current_floor, ElevDirection, next_floor)
 					ElevDirection = types.RUNUP
+					fmt.Printf("current floor: %d, Direction: %d, next_floor: %d\n" ,current_floor, ElevDirection, next_floor)
 					//	ElevDirectionCh <- types.RUNUP
 					Up()
 					break
@@ -118,8 +120,7 @@ func Up(){
 				Open()
 			case driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1:
 				ElevDirection = types.RUNDOWN
-				driver.Elev_set_motor_direction(types.STOPP)
-				fmt.Println("saftey down")
+//				fmt.Println("saftey down")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
 				Stopp()
@@ -142,10 +143,9 @@ func Down(){
 		switch{
 			case current_floor == next_floor:
 				Open()
-			case driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1:
-				ElevDirection = types.RUNDOWN
-				driver.Elev_set_motor_direction(types.STOPP)
-				fmt.Println("saftey down")
+			case driver.Elev_get_floor_sensor_signal() == 0:
+				ElevDirection = types.RUNUP
+//				fmt.Println("saftey up")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
 				Stopp()

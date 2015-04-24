@@ -21,6 +21,7 @@ import (
 	"../timer"
 	"fmt"
 	"time"
+	"runtime"
 )
 
 var(
@@ -33,8 +34,9 @@ var(
 )
 
 func main(){
-	//runtime.GOMAXPROCS(runtime.NumCPU())
+	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Print("-------- hallo from main --------------\n")
+	
 	elevator.Run()
 	
 	go listen_for_timeout()
@@ -45,15 +47,14 @@ func main(){
 	go timer.Decrement_and_check_auction_timers()
 	go timer.Add_handle_timer_for_new_system_data_update()
 	go timer.Listen_for_auctiondata_from_manager()
+
 	
 	go com.Com_listen_for_manager()
 	
-	go elevator.DoorTimer()
-	go elevator.FloorLigths()
-	go elevator.Update_channels()
-	go elevator.Read_order_buttons()
-	go elevator.Print()
-	go elevator.Idle()
+	
+	
+	
+
 	//elevator.Run()
 	
 	time.Sleep(100*time.Second)
@@ -66,12 +67,16 @@ func main(){
 
 func manager_listen_for_elevator(){
 	for{
+		
 		select{
 			case order_to_delete := <- elevator.Next_floor_doneCh:
-				System_data.M_handle_q[0][order_to_delete] = 0  // dette slukker begge lys ved besøk
-				System_data.M_handle_q[1][order_to_delete] = 0
-				System_data.M_internal_elev_out[types.MY_NUMBER][order_to_delete] = 0 
-			
+				fmt.Printf("dette skjedde")
+				System_data.M_handle_q[order_to_delete][0] = 0  // dette slukker begge lys/køer ved besøk
+				System_data.M_handle_q[order_to_delete][1] = 0
+				//oppdater handle q i timer og send sys dat update til alle andre heisane
+				System_data.M_internal_elev_out[order_to_delete][types.MY_NUMBER] = 0 
+				timer.Executed_orderCh <- order_to_delete
+
 			case new_external_auction_data := <- elevator.External_orderCh:
 				fmt.Printf("fikk nokke paa external order ch \n")
 				new_local_bid := cost.Calculate_cost(System_data, new_external_auction_data)
@@ -81,6 +86,7 @@ func manager_listen_for_elevator(){
 				com.Auction_bid_sendToComCh <- new_external_auction_data
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 			case new_internal_order := <- elevator.Internal_orderCh:
+				fmt.Printf("denne også \n")
 				System_data.M_internal_elev_out[types.MY_NUMBER][new_internal_order]=1
 				System_data.M_handle_q[types.MY_NUMBER*2][new_internal_order]=1  // dette er litt juks
 				System_data.M_handle_q[types.MY_NUMBER*2+1][new_internal_order]=1
@@ -103,6 +109,7 @@ func manager_listen_for_com(){
 
 		case new_system_data := <- com.System_data_sendToManagerCh:
 			fmt.Printf("---Ny systemdata fra com til manager\n %v",new_system_data)
+			//til gjennoppstandelse og fødsel mm
 
 
 		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
@@ -157,7 +164,15 @@ func listen_for_timeout(){
 		case peripheral_timout := <- timer.Handle_q_timeoutCh:
 			//trigge ny budrunde
 			fmt.Printf("---Nokken har somla vi maa trigge ny budrunde\n %v",peripheral_timout)
+			new_local_bid := cost.Calculate_cost(System_data, peripheral_timout)
+			peripheral_timout.Elevator_IP = types.MY_IP            
+			peripheral_timout.Bid = new_local_bid
+			peripheral_timout.Add = 1
+			com.Auction_bid_sendToComCh <- peripheral_timout
+			timer.NewAuctionInfoToTimerCh <- peripheral_timout
+
 		case won_assignment := <- timer.NotifyWinningBidToManagerCh:
+			fmt.Printf("---Vi vant budrunda, det maa vi fikse \n %v " , won_assignment)
 			if won_assignment.Direction==0{
 				System_data.M_handle_q[won_assignment.Floor][types.MY_NUMBER*2+won_assignment.Direction]=1
 
@@ -165,7 +180,8 @@ func listen_for_timeout(){
 				System_data.M_handle_q[won_assignment.Floor][types.MY_NUMBER*2+won_assignment.Direction]=1
 
 			}
-			fmt.Printf("---Vi vant budrunda, det maa vi fikse \n %v " , won_assignment)
+			
+		default:
 		}
 	}
 }
@@ -176,43 +192,34 @@ func determine_next_floor(){
 // legge til metode for å endre direction i tilfelle liste i dir retning er tom
 	for{
 
-		switch{
-			case Elevator_state.Direction == types.RUNDOWN:
-				fmt.Printf("rundown")
-				for i := types.N_FLOORS; i > 0; i-- {
-					if System_data.M_handle_q[i][0]>0{
-						fmt.Printf("sender neste etasje")
+		if Elevator_state.Direction == types.RUNDOWN{
+			for i := Elevator_state.Last_floor; i >= 0; i-- {
+				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
+					elevator.Next_floorCh <- i
+					break
+					}else if Elevator_state.Direction == types.RUNUP{
+					for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
+						if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1{
 						elevator.Next_floorCh <- i
+						break
+					
+					} 
+					}
+				}else if Elevator_state.Direction == types.STOPP{
+					for i := 0; i <types.N_FLOORS; i++ {
+						if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[types.MY_NUMBER][i]==1||System_data.M_handle_q[i][types.DOWN]==1{
+						elevator.Next_floorCh <- i
+						break
+						}
 					}
 				}
-			
-			case Elevator_state.Direction == types.RUNUP:
-				fmt.Printf("runup")
-				for j := 0; j > types.N_FLOORS; j++ {
-					if System_data.M_handle_q[j][0]>0{
-						fmt.Printf("sender neste etasje")
-						elevator.Next_floorCh <- j
-					}	
-				}
-			
-			case Elevator_state.Direction == types.STOPP:
-				fmt.Printf(".")
-				for k := 0; k > types.N_FLOORS; k++ {
-					fmt.Printf("M_handle %v ", System_data.M_handle_q[k][0] )
-					if System_data.M_handle_q[k][0]>0 || System_data.M_handle_q[k][1]>0{
-						fmt.Printf("sender neste etasje")
-						elevator.Next_floorCh <- k
-					}	
-				}
-			default:
-				fmt.Printf("asdasdasd")
-
-			
+				
+			time.Sleep(1000*time.Millisecond)
 		
 		}
-	time.Sleep(300*time.Millisecond)	
-	}
-
+		
+}
+}
 }
 
 func start_auction(external_bid types.Auction_data){ //lage to funskjoner for forskjellige triggere

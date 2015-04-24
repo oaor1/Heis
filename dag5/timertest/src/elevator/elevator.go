@@ -39,20 +39,29 @@ var(
 )
 
 func Run(){
+	done := make(chan bool)
+	//initialise the elevator
 	driver.Elev_init()
-}
+	go DoorTimer()
+	go FloorLigths()
+	driver.Elev_set_motor_direction(types.RUNDOWN)
+	for driver.Elev_get_floor_sensor_signal() == types.RUNDOWN{
+		time.Sleep(10*time.Millisecond)
+	}
+	driver.Elev_set_motor_direction(types.STOPP)
 	//Elevator initialized and in a definite floor
-	//for driver.Elev_get_floor_sensor_signal() == -1{
-	//	time.Sleep(10*time.Millisecond)
-	//}
-	//driver.Elev_set_motor_direction(types.RUNDOWN)
-
-	//driver.Elev_set_motor_direction(types.STOPP)
+	go Update_channels()
+	go Read_order_buttons()
+	go Print()
+	Idle()
+	<- done
+}
 
 func Idle(){
-
+	fmt.Println("Idle entered ------")
+	driver.Elev_set_motor_direction(types.STOPP)
 	for{
-		fmt.Println("Idle entered")
+		
 		driver.Elev_set_motor_direction(types.STOPP)
 		for{
 			for driver.Elev_get_obstruction_signal() == 1{
@@ -80,7 +89,7 @@ func Idle(){
 				
 			}	
 		}
-		time.Sleep(100*time.Millisecond)
+		time.Sleep(40*time.Millisecond)
 	}
 }
 
@@ -120,7 +129,7 @@ func Up(){
 			case driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1:
 				ElevDirection = types.RUNDOWN
 				driver.Elev_set_motor_direction(types.STOPP)
-				fmt.Println("saftey down\n")
+				fmt.Println("saftey set down\n")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
 				Stopp()
@@ -144,10 +153,10 @@ func Down(){
 		switch{
 			case current_floor == next_floor:
 				Open()
-			case driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1:
+			case driver.Elev_get_floor_sensor_signal() == 0:
 				ElevDirection = types.RUNDOWN
 				driver.Elev_set_motor_direction(types.STOPP)
-				fmt.Println("saftey down\n")
+				fmt.Println("saftey set down\n")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
 				Stopp()
@@ -190,7 +199,6 @@ func Update_channels(){
 			wasJustHere = false
 			fmt.Println("Mottok next_floor fra Next_floorCh\n")
 		default:
-
 		}
 	time.Sleep(100*time.Millisecond)	
 	}
@@ -212,26 +220,25 @@ func Read_order_buttons(){
 		for i :=0; i < types.N_FLOORS; i++{
 			for j := 0; j < 3; j++{
 				if driver.Elev_get_button_signal(j,i) > 0{
-					driver.Elev_set_button_lamp(j,i,1)
-					//next_floor = i
-					if j<2{
+					driver.Elev_set_button_lamp(j,i,1)}
+				if j<2&&driver.Elev_get_button_signal(j,i)==1{
 						var new_order types.Auction_data
 						new_order.Floor = i
 						new_order.Direction = j
-						fmt.Printf("prøver å sende ekstern ordre\n")
+						
 						External_orderCh <- new_order
-						fmt.Printf("fikk til å sende ekstern ordre\n")
-					}else if j==2{
-						fmt.Printf("prøver å sende intern ordre\n")
+						
+					}else if j==2 && driver.Elev_get_button_signal(j,i)==1{
+						fmt.Printf("print slo gjennom \n")
 						Internal_orderCh <- i
-						fmt.Printf("fikk til å sende intern ordre\n")
-					}
 				}
 			}
-		time.Sleep(5*time.Millisecond)
 		}
+		time.Sleep(5*time.Millisecond)
 	}
 }
+
+
 
 
 /*func Read_order_buttons(){
@@ -289,6 +296,6 @@ func Print(){
 		state.Last_floor = current_floor
 */
 
-		time.Sleep(1*time.Second)
+		time.Sleep(3*time.Second)
 	}
 }

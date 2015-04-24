@@ -57,6 +57,7 @@ func Elev_init() int{
   Sets the motor direction of the elevator.
   @param dirn New direction of the elevator.
 */
+  
 func Elev_set_motor_direction(dir int){
 	if dir == 0{
     Io_write_analog(MOTOR, 0)
