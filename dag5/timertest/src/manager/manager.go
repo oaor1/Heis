@@ -48,6 +48,7 @@ func main(){
 	go timer.Add_handle_timer_for_new_system_data_update()
 	go timer.Listen_for_auctiondata_from_manager()
 
+//	go Update_button_lamps()
 	
 	go com.Com_listen_for_manager()
 	
@@ -64,10 +65,11 @@ func main(){
 func manager_listen_for_elevator(){
 	for{
 		select{
-			case order_to_delete := <- elevator.Next_floor_doneCh:
-				fmt.Printf("Sletter ordre")
+			case order_to_delete := <- elevator.Next_floor_doneCh: //Denne må forbedres!
+//				fmt.Printf("Sletter ordre\n")
 				System_data.M_handle_q[order_to_delete][0] = 0  // dette slukker begge lys/køer ved besøk
 				System_data.M_handle_q[order_to_delete][1] = 0
+
 				//oppdater handle q i timer og send sys dat update til alle andre heisane
 				System_data.M_internal_elev_out[order_to_delete][types.MY_NUMBER] = 0 
 				timer.Executed_orderCh <- order_to_delete
@@ -82,7 +84,7 @@ func manager_listen_for_elevator(){
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 
 			case new_internal_order := <- elevator.Internal_orderCh:
-				fmt.Printf("fikk noe på internal order channel\n")
+//				fmt.Printf("fikk noe på internal order channel\n")
 				System_data.M_internal_elev_out[new_internal_order][types.MY_NUMBER]=1
 				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2]=1  // dette er litt juks
 				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2+1]=1
@@ -199,13 +201,6 @@ func listen_for_timeout(){
 }
 //timer.Standing_upwards_bid[won_assignment.Floor]
 
-/*
-case new_internal_order := <- elevator.Internal_orderCh:
-				fmt.Printf("fikk noe på internal order channel\n")
-				System_data.M_internal_elev_out[new_internal_order][types.MY_NUMBER]=1
-				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2]=1  // dette er litt juks
-				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2+1]=1
-*/
 
 
 func determine_next_floor(){
@@ -228,7 +223,6 @@ func determine_next_floor(){
 		}else if Elevator_state.Direction == types.STOPP{
 			for i := 0; i <types.N_FLOORS; i++ {
 				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1||System_data.M_handle_q[i][types.DOWN]==1{
-					fmt.Printf("DETTE ER ET TALL SOM BLIR SENDT %d \n",i)
 					elevator.Next_floorCh <- i
 				break
 				}
@@ -245,6 +239,26 @@ func start_auction(external_bid types.Auction_data){ //lage to funskjoner for fo
 
 	}
 }
+
+/*
+func Update_button_lamps(){
+	for i := 0; i < types.N_FLOORS; i++ {
+		for j := 0; j < types.MAX_N_ELEVATORS*2; j++ {
+			switch{
+			case System_data.M_internal_elev_out[i][j] == 0:
+				elevator.Button_lamps_off(j,i,0)
+			case System_data.M_internal_elev_out[i][j] == 1:
+				elevator.Button_lamps_off(j,i,1)
+			case System_data.M_handle_q[i][j] == 0:
+				elevator.Button_lamps_off(j,i,0)
+			case System_data.M_handle_q[i][j] == 1:
+				elevator.Button_lamps_off(order_to_delete,i,1)
+			}
+		}
+	}
+}
+*/
+
 //go rutine for å motta kvittering i fra heis på at etasje er besøkt /ordre er utført 
 //func delete_executed_order(){
 //	order_to_delete := <- elevator.Next_floor_doneCh 

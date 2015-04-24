@@ -216,7 +216,7 @@ func Read_order_buttons(){
 		for i :=0; i < types.N_FLOORS; i++{
 			for j := 0; j < 3; j++{
 				if driver.Elev_get_button_signal(j,i) > 0{
-					driver.Elev_set_button_lamp(j,i,1)
+//					driver.Elev_set_button_lamp(j,i,1)
 				}
 				if j<2&&driver.Elev_get_button_signal(j,i)==1{
 					var new_order types.Auction_data
@@ -236,6 +236,9 @@ func Read_order_buttons(){
 	}
 }
 
+func Button_lamps_off(button int, floor int, value int){
+	driver.Elev_set_button_lamp(button, floor, value)
+}
 
 
 
