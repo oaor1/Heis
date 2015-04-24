@@ -5,6 +5,7 @@ import(
 )
 
 var(
+	//her må vi ha en funksjon som finner ip
 	MY_IP = 123
 	MY_NUMBER = 0
 
@@ -36,11 +37,11 @@ const(
 type(
 
 	System_data struct{
-		IP_list				[] 		string		//
-		M_handle_q			[][]	int
-		M_internal_elev_out	[][]	int
-		M_UpAuction_q		[]		int
-		M_DownAuction_q		[]		int
+		IP_list				[MAX_N_ELEVATORS] 		int		//
+		M_handle_q			[N_FLOORS][2*MAX_N_ELEVATORS]	int
+		M_internal_elev_out	[N_FLOORS][MAX_N_ELEVATORS]	int
+		M_UpAuction_q		[N_FLOORS]		int
+		M_DownAuction_q		[N_FLOORS]		int
 	}
 
 	Elevator_state struct{
@@ -70,3 +71,4 @@ type(
 
 	}
 )
+//når noen har kvittert for egen intern besstilling må denne slettes over alt

@@ -6,7 +6,7 @@ import (
 	"time"
 )
 const(
-	AUCTIONTIME = 1000  // the timer will count for something like AUCTIONTIME * DECREMENT_INTERVAL
+	AUCTIONTIME = 100  // the timer will count for something like AUCTIONTIME * DECREMENT_INTERVAL
 	DECREMENT_INTERVAL = 4*time.Millisecond
 )
 
@@ -53,9 +53,89 @@ func Listen_for_auctiondata_from_manager(){
 			Handle_q_timer[new_peripheral_order.Floor][new_peripheral_order.Elevator_number*2+new_peripheral_order.Direction]=new_peripheral_order.Bid
 			//ny perifer ordre maa legges til i timout queue
 			fmt.Printf("---nokken har tatt på seg eit oppdrag, vi maa ta tida\n %v",new_peripheral_order)
+		
+		default:
+			
 		}
+	
+	}
+
+}
+
+
+func Add_handle_timer_for_new_system_data_update(){
+	fmt.Print("-------- hallo from add_handle_timer_for_new_system_data_update()-\n")
+	for{
+		time.Sleep(1*time.Second)
+		nPO := <- NewPeripheralOrderCh
+		Handle_q_timer[nPO.Floor][(nPO.Elevator_number*2)+nPO.Direction] = nPO.Bid
 	}
 }
+
+func Decrement_and_check_handle_timers(){
+	fmt.Print("-------- hallo from decrement_and_check_handle_timers \n")
+	for{
+	time.Sleep(1*time.Second)
+	for i := 0; i < types.N_FLOORS-1; i++ {
+		for j := 0; j < 20; j++ {
+			if Handle_q_timer[i][j] == 1{
+				Handle_q_timer[i][j] = 0
+				var NewOrder types.Auction_data
+				NewOrder.Direction = j%2  //dette betyr at up er 0 og down er 1
+				NewOrder.Floor = i
+				Handle_q_timeoutCh <- NewOrder
+			}
+			if Handle_q_timer[i][j] > 0{
+				Handle_q_timer[i][j] = Handle_q_timer[i][j] - 1
+			}
+
+		}
+	}
+	}
+}
+
+func Decrement_and_check_auction_timers(){
+	fmt.Print("-------- hallo from decrement_and_check_auction_timers()\n")
+	
+
+	for{
+		
+
+		for i := 0; i < types.N_FLOORS-1; i++ {
+			
+			if Up_order_timer[i] > 0{
+				Up_order_timer[i] = Up_order_timer[i] - 1
+			}
+			if Down_order_timer[i] > 0{
+				Down_order_timer[i] = Down_order_timer[i] - 1
+			}
+			
+			if Up_order_timer[i] == 1{
+				Up_order_timer[i] = 0
+				var WinningBid types.Auction_data
+				WinningBid.Floor = i
+				WinningBid.Matrix_type = 0 // maa agsaa legge til i handle timer
+				Handle_q_timer[WinningBid.Floor][types.MY_NUMBER*2]=Standing_upwards_bid[WinningBid.Floor]
+				NotifyWinningBidToManagerCh <- WinningBid
+
+			}
+			if Down_order_timer[i] ==1{
+				Down_order_timer[i] = 0
+				var WinningBid types.Auction_data
+				WinningBid.Floor = i
+				WinningBid.Matrix_type = 1
+				Handle_q_timer[WinningBid.Floor][(types.MY_NUMBER*2)+1]=Standing_downwards_bid[WinningBid.Floor]
+				NotifyWinningBidToManagerCh <- WinningBid
+			}
+			
+			}
+			time.Sleep(DECREMENT_INTERVAL) 
+		}	
+		
+		
+	}
+
+
 
 
 
@@ -103,77 +183,3 @@ func Funk(){
 	}
 }
 */
-func Add_handle_timer_for_new_system_data_update(){
-	fmt.Print("-------- hallo from add_handle_timer_for_new_system_data_update()-\n")
-	for{
-		time.Sleep(1*time.Second)
-		nPO := <- NewPeripheralOrderCh
-		Handle_q_timer[nPO.Floor][(nPO.Elevator_number*2)+nPO.Direction] = nPO.Bid
-	}
-}
-
-func Decrement_and_check_handle_timers(){
-	fmt.Print("-------- hallo from decrement_and_check_handle_timers \n")
-	for{
-	time.Sleep(1*time.Second)
-	for i := 0; i < types.N_FLOORS-1; i++ {
-		for j := 0; j < 20; j++ {
-			if Handle_q_timer[i][j] == 1{
-				Handle_q_timer[i][j] = 0
-				var NewOrder types.Auction_data
-				NewOrder.Direction = j%2  //dette betyr at up er 0 og down er 1
-				NewOrder.Floor = i
-				Handle_q_timeoutCh <- NewOrder
-			}
-			if Handle_q_timer[i][j] > 0{
-				Handle_q_timer[i][j] = Handle_q_timer[i][j] - 1
-			}
-
-		}
-	}
-	}
-}
-
-func Decrement_and_check_auction_timers(){
-	fmt.Print("-------- hallo from decrement_and_check_auction_timers()\n")
-	
-
-	for{
-		
-
-		for i := 0; i < 3; i++ {
-			
-			if Up_order_timer[i] > 0{
-				Up_order_timer[i] = Up_order_timer[i] - 1
-			}
-			if Down_order_timer[i] > 0{
-				Down_order_timer[i] = Down_order_timer[i] - 1
-			}
-			
-			if Up_order_timer[i] == 1{
-				Up_order_timer[i] = 0
-				var WinningBid types.Auction_data
-				WinningBid.Floor = i
-				WinningBid.Matrix_type = 0 // maa agsaa legge til i handle timer
-				Handle_q_timer[WinningBid.Floor][types.MY_NUMBER*2]=Standing_upwards_bid[WinningBid.Floor]
-				NotifyWinningBidToManagerCh <- WinningBid
-
-			}
-			if Down_order_timer[i] ==1{
-				Down_order_timer[i] = 0
-				var WinningBid types.Auction_data
-				WinningBid.Floor = i
-				WinningBid.Matrix_type = 1
-				Handle_q_timer[WinningBid.Floor][(types.MY_NUMBER*2)+1]=Standing_downwards_bid[WinningBid.Floor]
-				NotifyWinningBidToManagerCh <- WinningBid
-			}
-			
-			}
-			time.Sleep(DECREMENT_INTERVAL) 
-		}	
-		
-		
-	}
-
-
-

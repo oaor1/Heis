@@ -33,7 +33,7 @@ Next_floor_to_elevator = make (chan int)
 */
 )
 
-func com_listen_for_manager(){
+func Com_listen_for_manager(){
 	for{
 		time.Sleep(time.Millisecond*10)
 		select{
