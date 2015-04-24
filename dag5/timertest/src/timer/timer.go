@@ -15,17 +15,17 @@ var(
 	NewAuctionInfoToTimerCh = make(chan types.Auction_data)
 	NewPeripheralOrderCh = make(chan types.Auction_data)
 	Handle_q_timeoutCh = make(chan types.Auction_data)
-
+	Executed_orderCh = make(chan int)
 
 	//Number_of_elevators int
 
-	Up_order_timer [types.N_FLOORS-1] int
-	Down_order_timer [types.N_FLOORS-1] int
+	Up_order_timer [types.N_FLOORS] int
+	Down_order_timer [types.N_FLOORS] int
 
-	Standing_upwards_bid[ types.N_FLOORS-1] int
-	Standing_downwards_bid[types.N_FLOORS-1] int
+	Standing_upwards_bid[ types.N_FLOORS] int
+	Standing_downwards_bid[types.N_FLOORS] int
 	
-	Handle_q_timer [types.N_FLOORS-1][20]int
+	Handle_q_timer [types.N_FLOORS][20]int
 	
 	
 )
@@ -41,25 +41,31 @@ func Listen_for_auctiondata_from_manager(){
 			fmt.Printf("---mottar ny budinfo fra manager \n %v",new_auction_data)
 			switch{
 			case new_auction_data.Direction == types.UP:
+				fmt.Printf("---kom så langt 1 \n ")
 				Up_order_timer[new_auction_data.Floor]=AUCTIONTIME*new_auction_data.Add
+				fmt.Printf("kom så langt  2\n ")
 				Standing_upwards_bid[new_auction_data.Floor]=new_auction_data.Bid*new_auction_data.Add
+				fmt.Printf("---kom så langt  3 \n ")
 			case new_auction_data.Direction == types.DOWN:
+				fmt.Printf("---kom så langt  4 %d \n ", new_auction_data.Floor)
 				Down_order_timer[new_auction_data.Floor]=AUCTIONTIME*new_auction_data.Add
+				fmt.Printf("---kom så langt  5 \n ")
 				Standing_downwards_bid[new_auction_data.Floor]=new_auction_data.Bid*new_auction_data.Add
 			default:
-				fmt.Printf("Dette skal ikkje skje .. timer ln 35 mottok eit ugyldig bud")
+				fmt.Printf("Dette skal ikkje skje .. timer ln 50 mottok eit ugyldig bud")
 			}
 		case new_peripheral_order := <- NewPeripheralOrderCh:
 			Handle_q_timer[new_peripheral_order.Floor][new_peripheral_order.Elevator_number*2+new_peripheral_order.Direction]=new_peripheral_order.Bid
 			//ny perifer ordre maa legges til i timout queue
 			fmt.Printf("---nokken har tatt på seg eit oppdrag, vi maa ta tida\n %v",new_peripheral_order)
-		
+		case new_executed_order := <- Executed_orderCh:
+			Handle_q_timer[new_executed_order][types.MY_NUMBER*2]=0
+			Handle_q_timer[new_executed_order][types.MY_NUMBER*2+1]=0
+
 		default:
 			
 		}
-	
 	}
-
 }
 
 
@@ -101,7 +107,7 @@ func Decrement_and_check_auction_timers(){
 	for{
 		
 
-		for i := 0; i < types.N_FLOORS-1; i++ {
+		for i := 0; i < types.N_FLOORS; i++ {
 			
 			if Up_order_timer[i] > 0{
 				Up_order_timer[i] = Up_order_timer[i] - 1
