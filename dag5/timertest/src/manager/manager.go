@@ -22,19 +22,36 @@ import (
 	"fmt"
 	"time"
 	"runtime"
+	
 )
 
 var(
+	initialized = false
 	Bullshit_incrementor int
 	System_data types.System_data
 	timeOutAuctionCh = make (chan bool)
+	no_one_is_aliveCH = make (chan bool)
 	local_elevator_que [types.N_FLOORS] int
 	Elevator_state types.Elevator_state
 
 )
 
 func main(){
+	fmt.Printf("This is 1\n")
+	go check_for_life_on_network()
+	fmt.Printf("This is 2\n")
+	go com.Listen_for_system_data()
+	fmt.Printf("This is 3\n")
+	go init_manager()
+
+	time.Sleep(types.LOOK_FOR_FRIENDS*time.Millisecond)
+	fmt.Printf("This is 4\n")
 	runtime.GOMAXPROCS(runtime.NumCPU())
+	fmt.Printf("this is my ip:%d", types.MY_IP)  
+     
+
+
+
 	fmt.Print("-------- hallo from main --------------\n")
 	
 	go elevator.Run()
@@ -42,6 +59,7 @@ func main(){
 	go manager_listen_for_elevator()
 	go listen_for_timeout()
 	go determine_next_floor()
+	go manager_listen_for_com()
 
 	go timer.Decrement_and_check_handle_timers()
 	go timer.Decrement_and_check_auction_timers()
@@ -50,17 +68,58 @@ func main(){
 
 //	go Update_button_lamps()
 	
-	go com.Com_listen_for_manager()
+//	go com.Com_listen_for_manager()
+	go com.Send()
+	go com.Recive()
 	
-	
-	
-	
-
-	//elevator.Run()
 	
 	time.Sleep(100*time.Second)
 
 }
+
+func check_for_life_on_network(){
+	time.Sleep(types.LOOK_FOR_FRIENDS*time.Millisecond)
+	no_one_is_aliveCH <- true
+}
+
+func send_system_data_to_network() {
+	time.Sleep(500*time.Millisecond)
+	com.Dedicated_system_data_sendToComCh <- System_data
+	
+}
+
+
+
+func init_manager(){
+	fmt.Printf("initializing")
+	for initialized==false{
+		select{
+		case <- no_one_is_aliveCH:
+			fmt.Printf(":( :( :( :( :( FOREVER ALONE :( :( :( :( :( :(  \n")
+			types.MY_NUMBER = 0
+			initialized = true
+			com.Looking_for_friends = false
+		case system_data := <- com.System_data_sendToManagerCh:
+			fmt.Printf("-----------FOUND SOME FRIENDS JIPPI! ----------------------\n")
+			for i := 0; i < types.MAX_N_ELEVATORS; i++ {
+				if system_data.IP_list[i]==types.MY_IP{
+					types.MY_NUMBER=i
+					initialized = true
+					com.Looking_for_friends = false
+					break
+				}else if system_data.IP_list[i]==0{
+					types.MY_NUMBER=i
+					initialized = true
+					com.Looking_for_friends = false
+					break
+				}
+			}
+		initialized = true
+		}
+	}
+}
+
+
 
 func manager_listen_for_elevator(){
 	for{
@@ -127,10 +186,10 @@ func manager_listen_for_com(){
 
 
 		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
-//			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v",new_external_auction_data)
+			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v",new_external_auction_data)
 			new_internal_bid := cost.Calculate_cost(System_data, new_external_auction_data)
-			
 			if new_internal_bid < new_external_auction_data.Bid{
+				fmt.Printf("jeg kan slå dette budet STÅENDE VINNERBUD")
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = new_internal_bid
 				new_external_auction_data.Add = 1
@@ -138,6 +197,7 @@ func manager_listen_for_com(){
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 				
 			}else if new_internal_bid > new_external_auction_data.Bid{
+				fmt.Printf("noen andre hadde bedre bud enn meg JEG TAPTE")
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = 0
 				new_external_auction_data.Add = 0
@@ -145,8 +205,13 @@ func manager_listen_for_com(){
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 
 			}else if new_internal_bid == new_external_auction_data.Bid{ 
+				fmt.Printf("Budene er like: -------------")
+				fmt.Printf(": %d  ---------- %d \n ",new_internal_bid  , new_external_auction_data.Bid)
+				
 
-				if new_external_auction_data.Elevator_IP < types.MY_IP{
+
+				if new_external_auction_data.Elevator_IP > types.MY_IP{
+					fmt.Printf("jeg leder budrunden på bakrunn av IP JEG VAN PÅ IP")
 					new_external_auction_data.Elevator_number = types.MY_IP                   
 					new_external_auction_data.Bid = new_internal_bid
 					new_external_auction_data.Add = 1
@@ -240,24 +305,32 @@ func start_auction(external_bid types.Auction_data){ //lage to funskjoner for fo
 	}
 }
 
-/*
+
 func Update_button_lamps(){
 	for i := 0; i < types.N_FLOORS; i++ {
-		for j := 0; j < types.MAX_N_ELEVATORS*2; j++ {
+		for j := 0; j < types.MAX_N_ELEVATORS; j++ {
 			switch{
-			case System_data.M_internal_elev_out[i][j] == 0:
-				elevator.Button_lamps_off(j,i,0)
-			case System_data.M_internal_elev_out[i][j] == 1:
-				elevator.Button_lamps_off(j,i,1)
+			case System_data.M_internal_elev_out[i][types.MY_NUMBER] == 0:
+				elevator.Set_button_lamps(2,i,0)
+			case System_data.M_internal_elev_out[i][types.MY_NUMBER] == 1:
+				elevator.Set_button_lamps(2,i,1)
 			case System_data.M_handle_q[i][j] == 0:
-				elevator.Button_lamps_off(j,i,0)
+				if (j%2)==1{
+					elevator.Set_button_lamps(types.UP,i,0)
+				}else{
+					elevator.Set_button_lamps(types.DOWN,i,0)
+				}
 			case System_data.M_handle_q[i][j] == 1:
-				elevator.Button_lamps_off(order_to_delete,i,1)
+				if (j%2)==0{
+					elevator.Set_button_lamps(types.UP,i,1)
+				}else{
+					elevator.Set_button_lamps(types.DOWN,i,1)
+				}
 			}
 		}
 	}
 }
-*/
+
 
 //go rutine for å motta kvittering i fra heis på at etasje er besøkt /ordre er utført 
 //func delete_executed_order(){

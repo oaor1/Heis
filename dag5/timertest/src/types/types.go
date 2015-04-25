@@ -2,11 +2,14 @@ package types
 
 import(
 	"time"
+	"strings"
+	"net"
+	"strconv"
 )
 
 var(
 	//her må vi ha en funksjon som finner ip
-	MY_IP = 123
+	MY_IP = Get_last_byte_of_local_ip()
 	MY_NUMBER = 0
 
 )
@@ -18,6 +21,7 @@ const(
 
 	TIMEOUT = 3*time.Second
 
+	LOOK_FOR_FRIENDS = 1000
 
 	HANDEL_Q = 0
 	INTERNAL_ELEV_OUT = 1
@@ -71,4 +75,15 @@ type(
 
 	}
 )
+
+func Get_last_byte_of_local_ip()int{
+	conn, _ := net.Dial("udp", "google.com:80")  
+    defer conn.Close()  
+    var fullIP = strings.Split(conn.LocalAddr().String(), ":")[0]
+    last_byte_of_local_IP := strings.Split(fullIP, ".")[3]  
+    last_int64_of_local_IP, _ := strconv.ParseInt(last_byte_of_local_IP,0,8) 
+    var last_int8_of_local_IP int
+    last_int8_of_local_IP = int(last_int64_of_local_IP)
+	return last_int8_of_local_IP
+}
 //når noen har kvittert for egen intern besstilling må denne slettes over alt

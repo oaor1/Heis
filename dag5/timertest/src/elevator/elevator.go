@@ -189,8 +189,9 @@ func Update_channels(){
 			fmt.Println("Mottok next_floor fra Next_floorCh\n")
 		default:
 		}
-		if driver.Elev_get_floor_sensor_signal() >= 0{
-			current_floor = driver.Elev_get_floor_sensor_signal()
+		var check_floor = driver.Elev_get_floor_sensor_signal()
+		if check_floor >= 0{
+			current_floor = check_floor
 		}
 		Elevator_state.Direction=ElevDirection
 		Elevator_state.Last_floor=current_floor
@@ -236,7 +237,7 @@ func Read_order_buttons(){
 	}
 }
 
-func Button_lamps_off(button int, floor int, value int){
+func Set_button_lamps(button int, floor int, value int){
 	driver.Elev_set_button_lamp(button, floor, value)
 }
 
@@ -290,7 +291,7 @@ func FloorLigths(){
 
 func Print(){
 	for{
-		fmt.Printf("current floor: %d, Direction: %d, next_floor: %d\n" ,driver.Elev_get_floor_sensor_signal(), ElevDirection, next_floor)
+		fmt.Printf("current floor: %d, Direction: %d, next_floor: %d\n" ,current_floor, ElevDirection, next_floor)
 /*
 		var state types.Elevator_state
 		state.Direction = ElevDirection
