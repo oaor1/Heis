@@ -5,15 +5,14 @@ import(
 	"strings"
 	"net"
 	"strconv"
-
 )
 
 var(
-	//her må vi ha en funksjon som finner ip
+	
 	MY_IP = Get_last_byte_of_local_ip()
 	MY_NUMBER = 0
-
 )
+
 const(
 	
 	MAX_N_ELEVATORS = 10
@@ -37,16 +36,12 @@ const(
 	DOWN = 1
 )
 
-
-
 type(
 
 	System_data struct{
 		IP_list				[MAX_N_ELEVATORS] 		int		//
 		M_handle_q			[N_FLOORS][2*MAX_N_ELEVATORS]	int
 		M_internal_elev_out	[N_FLOORS][MAX_N_ELEVATORS]	int
-//		M_UpAuction_q		[N_FLOORS]		int
-//		M_DownAuction_q		[N_FLOORS]		int
 	}
 
 	Elevator_state struct{
@@ -55,16 +50,16 @@ type(
 		Obstruction bool 
 	}
 
-	Handle_confirmation int  //manager faar bekreftelse paa etasje besok
+	Handle_confirmation int  //Executed order
 
 	Update_system_data struct{
 		Elevator_IP int
 		Elevator_number int 
-		Add_order int //1 for add and 0 for delete
-		Update_type int //0-3, IP_LIST - DELETE_TIMERS  -  UPDATE_HANDLE_q
+		Add_order int //1 for add / 0 for delete
+		Update_type int //0-3, IP_LIST - DELETE_TIMERS  -  UPDATE_HANDLE_q - Update-internal_elev_out
 		Elevator_n int
 		Floor_n int
-		Direction int // 0 = up  ----  1 DOWN
+		Direction int // 0 = up  / 1 DOWN
 	}
 
 	Auction_data struct{
@@ -75,8 +70,6 @@ type(
 		Elevator_IP int
 		Elevator_number int 
 		Add int
-		
-
 	}
 )
 
@@ -87,7 +80,4 @@ func Get_last_byte_of_local_ip()int{
     last_byte_of_local_IP := strings.Split(fullIP, ".")[3]  
    	i, _ := strconv.Atoi(last_byte_of_local_IP)
     return i
-
-//	return last_int8_of_local_IP
 }
-//når noen har kvittert for egen intern besstilling må denne slettes over alt

@@ -18,9 +18,6 @@ var(
 	Handle_q_timeoutCh = make(chan types.Auction_data)
 	Executed_orderCh = make(chan int)
 
-
-	//Number_of_elevators int
-
 	Up_order_timer [types.N_FLOORS] int
 	Down_order_timer [types.N_FLOORS] int
 
@@ -28,11 +25,7 @@ var(
 	Standing_downwards_bid[types.N_FLOORS] int
 	
 	Handle_q_timer [types.N_FLOORS][20]int
-	
-	
 )
-
-
 
 func Listen_for_auctiondata_from_manager(){
 	for{

@@ -178,7 +178,7 @@ func manager_listen_for_elevator(){
 
 			case new_external_auction_data := <- elevator.External_orderCh:
 				//fmt.Printf("fikk nokke paa external order ch \n")
-			
+
 				new_local_bid := cost.Calculate_cost(System_data, new_external_auction_data, Elevator_state)
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = new_local_bid
@@ -188,13 +188,16 @@ func manager_listen_for_elevator(){
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 
 			case new_internal_order := <- elevator.Internal_orderCh:
-//				fmt.Printf("fikk noe på internal order channel\n")
 				System_data.M_internal_elev_out[new_internal_order][types.MY_NUMBER]=1
-				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2]=1  // dette er litt juks
-				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2+1]=1
+//				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2]=1 
+//				System_data.M_handle_q[new_internal_order][types.MY_NUMBER*2+1]=1
+				var update_internal types.Update_system_data
+				update_internal.Floor_n = new_internal_order
+				update_internal.Elevator_number = types.MY_NUMBER
+				update_internal.Update_type = 3
+				com.Update_system_data_sendToComCh <- update_internal
 
-//				fmt.Printf("Internal elev out: %v \n", System_data.M_internal_elev_out)
-//				fmt.Printf("handel kø: %v \n", System_data.M_internal_elev_out)
+
 				fmt.Printf("\n")
 				for i := 0; i < 4; i++ {
 					fmt.Printf("\n")
@@ -214,7 +217,7 @@ func manager_listen_for_elevator(){
 
 			case Elevator_state := <- elevator.States_to_managerCh:
 				Bullshit_incrementor += Elevator_state.Direction
-				//fmt.Printf("mottok elevator state %v \n", Elevator_state)
+				
 		} 
 	time.Sleep(100*time.Millisecond)
 	}	
@@ -227,7 +230,7 @@ func manager_listen_for_com(){
 
 		case new_system_data := <- com.System_data_sendToManagerCh:
 			fmt.Printf("---Ny systemdata fra com til manager\n %v \n",new_system_data)
-			//til gjennoppstandelse og fødsel mm
+			
 
 
 		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
@@ -283,6 +286,8 @@ func manager_listen_for_com(){
 					
 				case new_system_data_update.Update_type == 2: // handel_q   
 					System_data.M_handle_q[new_system_data_update.Floor_n][2*new_system_data_update.Elevator_number+new_system_data_update.Direction] = new_system_data_update.Add_order
+				case new_system_data_update.Update_type == 3:
+					System_data.M_internal_elev_out[new_system_data_update.Floor_n][new_system_data_update.Elevator_number]=1
 				default:
 				
 			}
