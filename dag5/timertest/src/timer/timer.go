@@ -120,6 +120,7 @@ func Decrement_and_check_auction_timers(){
 			if Up_order_timer[i] == 1{
 				Up_order_timer[i] = 0
 				var WinningBid types.Auction_data
+				WinningBid.Direction = types.UP
 				WinningBid.Floor = i
 				WinningBid.Matrix_type = 0 // maa agsaa legge til i handle timer
 				Handle_q_timer[WinningBid.Floor][types.MY_NUMBER*2]=Standing_upwards_bid[WinningBid.Floor]
@@ -129,6 +130,7 @@ func Decrement_and_check_auction_timers(){
 			if Down_order_timer[i] ==1{
 				Down_order_timer[i] = 0
 				var WinningBid types.Auction_data
+				WinningBid.Direction = types.DOWN
 				WinningBid.Floor = i
 				WinningBid.Matrix_type = 1
 				Handle_q_timer[WinningBid.Floor][(types.MY_NUMBER*2)+1]=Standing_downwards_bid[WinningBid.Floor]

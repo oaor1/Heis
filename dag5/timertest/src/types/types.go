@@ -5,6 +5,7 @@ import(
 	"strings"
 	"net"
 	"strconv"
+	"fmt"
 )
 
 var(
@@ -21,7 +22,7 @@ const(
 
 	TIMEOUT = 3*time.Second
 
-	LOOK_FOR_FRIENDS = 1000
+	LOOK_FOR_FRIENDS = 150
 
 	HANDEL_Q = 0
 	INTERNAL_ELEV_OUT = 1
@@ -82,10 +83,15 @@ func Get_last_byte_of_local_ip()int{
 	conn, _ := net.Dial("udp", "google.com:80")  
     defer conn.Close()  
     var fullIP = strings.Split(conn.LocalAddr().String(), ":")[0]
+    fmt.Println(fullIP)
     last_byte_of_local_IP := strings.Split(fullIP, ".")[3]  
+    fmt.Println(last_byte_of_local_IP)
     last_int64_of_local_IP, _ := strconv.ParseInt(last_byte_of_local_IP,0,8) 
+    fmt.Println(last_int64_of_local_IP)
     var last_int8_of_local_IP int
+
     last_int8_of_local_IP = int(last_int64_of_local_IP)
+    fmt.Println(last_int8_of_local_IP)
 	return last_int8_of_local_IP
 }
 //når noen har kvittert for egen intern besstilling må denne slettes over alt

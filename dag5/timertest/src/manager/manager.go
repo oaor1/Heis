@@ -12,6 +12,7 @@ Manager
 	Things to fiks :
 
 	meir inteligent determine next floor, tar ikkje med seg folk som skal i samme retning
+		spessiellt med DIR == DOWN
 	
 	kostfunksjon
 
@@ -19,6 +20,12 @@ Manager
 			laveste ip hopper ned i lista
 
 	Når man mottar data må man sjekke at Elevator_number er ulikt sitt eget nummer og evt forkaste sine egene meldinger
+
+	Nummeret til pizzabakeren Øya: 73 52 66 66
+				Åpnignstider:  
+					Mandag - Torsdag 13:00 - 22:00
+					Fredag - Lørdag  12:00 - 23:00
+					         Søndag  13:00 - 22:00
 	
 	fylle ut
 */
@@ -59,7 +66,7 @@ func main(){
 	time.Sleep(types.LOOK_FOR_FRIENDS*2*time.Millisecond)
 	
 	runtime.GOMAXPROCS(runtime.NumCPU())
-	fmt.Printf("this is my ip:%d", types.MY_IP)  
+	fmt.Printf("this is my ip: %d", types.MY_IP)  
      
 
 
@@ -74,6 +81,7 @@ func main(){
 	go listen_for_timeout()
 	go determine_next_floor()
 	go manager_listen_for_com()
+	go Update_button_lamps()
 
 	go timer.Decrement_and_check_handle_timers()
 	go timer.Decrement_and_check_auction_timers()
@@ -86,7 +94,6 @@ func main(){
 	go com.Send_system_data()
 	go com.Send()
 	go com.Recive()
-	
 	
 	time.Sleep(100*time.Second)
 
@@ -168,12 +175,14 @@ func manager_listen_for_elevator(){
 				com.Update_system_data_sendToComCh <- system_data_update
 
 
+
 			case new_external_auction_data := <- elevator.External_orderCh:
 				fmt.Printf("fikk nokke paa external order ch \n")
 				new_local_bid := cost.Calculate_cost(System_data, new_external_auction_data)
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = new_local_bid
 				new_external_auction_data.Add = 1
+				fmt.Printf("Dette er order drievtion: %d \n", new_external_auction_data.Direction)
 				com.Auction_bid_sendToComCh <- new_external_auction_data
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 
@@ -272,7 +281,6 @@ func manager_listen_for_com(){
 					timer.NewPeripheralOrderCh <- set_peripheral_order
 					
 				case new_system_data_update.Update_type == 2: // handel_q   
-
 					System_data.M_handle_q[new_system_data_update.Floor_n][2*new_system_data_update.Elevator_number+new_system_data_update.Direction] = new_system_data_update.Add_order
 				default:
 				
@@ -352,30 +360,62 @@ func start_auction(external_bid types.Auction_data){ //lage to funskjoner for fo
 
 
 func Update_button_lamps(){
-	for i := 0; i < types.N_FLOORS; i++ {
-		for j := 0; j < types.MAX_N_ELEVATORS; j++ {
-			switch{
-			case System_data.M_internal_elev_out[i][types.MY_NUMBER] == 0:
-				elevator.Set_button_lamps(2,i,0)
-			case System_data.M_internal_elev_out[i][types.MY_NUMBER] == 1:
-				elevator.Set_button_lamps(2,i,1)
-			case System_data.M_handle_q[i][j] == 0:
-				if (j%2)==1{
-					elevator.Set_button_lamps(types.UP,i,0)
-				}else{
-					elevator.Set_button_lamps(types.DOWN,i,0)
+	for{
+		
+		for i := 0; i < types.N_FLOORS; i++ {
+			var zero_counter_up int = 0
+			var zero_counter_down int = 0
+			for j := 0; j < types.MAX_N_ELEVATORS*2; j++ {
+				if System_data.M_internal_elev_out[i][types.MY_NUMBER] == 0{
+					elevator.Set_button_lamps(2,i,0)
 				}
-			case System_data.M_handle_q[i][j] == 1:
-				if (j%2)==0{
-					elevator.Set_button_lamps(types.UP,i,1)
-				}else{
-					elevator.Set_button_lamps(types.DOWN,i,1)
+				if System_data.M_internal_elev_out[i][types.MY_NUMBER] == 1{
+					elevator.Set_button_lamps(2,i,1)
+				}
+				
+				if System_data.M_handle_q[i][j] == 0{
+					if (j%2)==1{
+						zero_counter_down = zero_counter_down + 1
+					}else{
+						zero_counter_up = zero_counter_up + 1
+					}
+				}
+				
+				if System_data.M_handle_q[i][j] == 1{
+					if (j%2)==0{
+						elevator.Set_button_lamps(types.UP,i,1)
+					}else{
+						elevator.Set_button_lamps(types.DOWN,i,1)
+					}
 				}
 			}
+			if zero_counter_up == types.MAX_N_ELEVATORS{
+				elevator.Set_button_lamps(0,i,0)
+			}
+			if zero_counter_down == types.MAX_N_ELEVATORS{
+				elevator.Set_button_lamps(1,i,0)
+			}
+			
 		}
+
+	time.Sleep(50*time.Millisecond)	
 	}
 }
+/*
+func set_up_buttorns_to_zero(){
+	for i := 0; i < types.N_FLOORS; i++ {
+			for j := 0; j < types.MAX_N_ELEVATORS*2; j++ {
+				if System_data.M_handle_q[i][j] == 1{
+					if (j%2)==0{
+						elevator.Set_button_lamps(types.UP,i,1)
+					}else{
+						elevator.Set_button_lamps(types.DOWN,i,1)
+					}
+				}
 
+
+}
+*/
 
 //go rutine for å motta kvittering i fra heis på at etasje er besøkt /ordre er utført 
 //func delete_executed_order(){
