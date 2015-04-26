@@ -83,15 +83,10 @@ func Get_last_byte_of_local_ip()int{
 	conn, _ := net.Dial("udp", "google.com:80")  
     defer conn.Close()  
     var fullIP = strings.Split(conn.LocalAddr().String(), ":")[0]
-    fmt.Println(fullIP)
     last_byte_of_local_IP := strings.Split(fullIP, ".")[3]  
-    fmt.Println(last_byte_of_local_IP)
-    last_int64_of_local_IP, _ := strconv.ParseInt(last_byte_of_local_IP,0,8) 
-    fmt.Println(last_int64_of_local_IP)
-    var last_int8_of_local_IP int
+   	i, _ := strconv.Atoi(last_byte_of_local_IP)
+    return i
 
-    last_int8_of_local_IP = int(last_int64_of_local_IP)
-    fmt.Println(last_int8_of_local_IP)
-	return last_int8_of_local_IP
+//	return last_int8_of_local_IP
 }
 //når noen har kvittert for egen intern besstilling må denne slettes over alt
