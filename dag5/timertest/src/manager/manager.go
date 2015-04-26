@@ -8,6 +8,16 @@ Manager
 	mottar bud fra com og avgjør om budrunden ble vunnet
 	avgjør neste etasje
 	instruerer elevator
+
+	Things to fiks :
+
+	meir inteligent determine next floor, tar ikkje med seg folk som skal i samme retning
+	
+	kostfunksjon
+
+	kontinuerlig sjekk om andre har samme elevator number: løsning 
+			laveste ip hopper ned i lista
+	
 */
 
 
@@ -37,15 +47,15 @@ var(
 )
 
 func main(){
-	fmt.Printf("This is 1\n")
-	go check_for_life_on_network()
-	fmt.Printf("This is 2\n")
+	
+	go timeout_check_for_life_on_network()
+
 	go com.Listen_for_system_data()
-	fmt.Printf("This is 3\n")
+
 	go init_manager()
 
 	time.Sleep(types.LOOK_FOR_FRIENDS*time.Millisecond)
-	fmt.Printf("This is 4\n")
+	
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Printf("this is my ip:%d", types.MY_IP)  
      
@@ -77,13 +87,13 @@ func main(){
 
 }
 
-func check_for_life_on_network(){
+func timeout_check_for_life_on_network(){
 	time.Sleep(types.LOOK_FOR_FRIENDS*time.Millisecond)
 	no_one_is_aliveCH <- true
 }
 
 func send_system_data_to_network() {
-	time.Sleep(500*time.Millisecond)
+	time.Sleep(50*time.Millisecond)
 	com.Dedicated_system_data_sendToComCh <- System_data
 	
 }
@@ -181,15 +191,16 @@ func manager_listen_for_com(){
 		select{
 
 		case new_system_data := <- com.System_data_sendToManagerCh:
-			fmt.Printf("---Ny systemdata fra com til manager\n %v",new_system_data)
+			fmt.Printf("---Ny systemdata fra com til manager\n %v \n",new_system_data)
 			//til gjennoppstandelse og fødsel mm
 
 
 		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
-			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v",new_external_auction_data)
+			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v \n",new_external_auction_data)
+			fmt.Printf("\n")
 			new_internal_bid := cost.Calculate_cost(System_data, new_external_auction_data)
 			if new_internal_bid < new_external_auction_data.Bid{
-				fmt.Printf("jeg kan slå dette budet STÅENDE VINNERBUD")
+				fmt.Printf("jeg kan slå dette budet STÅENDE VINNERBUD\n")
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = new_internal_bid
 				new_external_auction_data.Add = 1
@@ -197,7 +208,7 @@ func manager_listen_for_com(){
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 				
 			}else if new_internal_bid > new_external_auction_data.Bid{
-				fmt.Printf("noen andre hadde bedre bud enn meg JEG TAPTE")
+				fmt.Printf("noen andre hadde bedre bud enn meg JEG TAPTE\n")
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = 0
 				new_external_auction_data.Add = 0
@@ -205,18 +216,20 @@ func manager_listen_for_com(){
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 
 			}else if new_internal_bid == new_external_auction_data.Bid{ 
-				fmt.Printf("Budene er like: -------------")
+				fmt.Printf("Budene er like: -------------\n")
 				fmt.Printf(": %d  ---------- %d \n ",new_internal_bid  , new_external_auction_data.Bid)
 				
 
 
 				if new_external_auction_data.Elevator_IP > types.MY_IP{
-					fmt.Printf("jeg leder budrunden på bakrunn av IP JEG VAN PÅ IP")
+					fmt.Printf("jeg leder budrunden på bakrunn av IP \n")
 					new_external_auction_data.Elevator_number = types.MY_IP                   
 					new_external_auction_data.Bid = new_internal_bid
 					new_external_auction_data.Add = 1
 					com.Auction_bid_sendToComCh <- new_external_auction_data
 					timer.NewAuctionInfoToTimerCh <- new_external_auction_data 
+				}else{
+					fmt.Printf("jeg leder tapte budrunden på bakgrunn av ip")
 				}
 			}
 			

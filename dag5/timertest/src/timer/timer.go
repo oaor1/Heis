@@ -41,15 +41,15 @@ func Listen_for_auctiondata_from_manager(){
 //			fmt.Printf("---mottar ny budinfo fra manager \n %v",new_auction_data)
 			switch{
 			case new_auction_data.Direction == types.UP:
-				fmt.Printf("---kom så langt 1 \n ")
+				//fmt.Printf("---kom så langt 1 \n ")
 				Up_order_timer[new_auction_data.Floor]=AUCTIONTIME*new_auction_data.Add
-				fmt.Printf("kom så langt  2\n ")
+				//fmt.Printf("kom så langt  2\n ")
 				Standing_upwards_bid[new_auction_data.Floor]=new_auction_data.Bid*new_auction_data.Add
-				fmt.Printf("---kom så langt  3 \n ")
+				//fmt.Printf("---kom så langt  3 \n ")
 			case new_auction_data.Direction == types.DOWN:
-				fmt.Printf("---kom så langt  4 %d \n ", new_auction_data.Floor)
+				//fmt.Printf("---kom så langt  4 %d \n ", new_auction_data.Floor)
 				Down_order_timer[new_auction_data.Floor]=AUCTIONTIME*new_auction_data.Add
-				fmt.Printf("---kom så langt  5 \n ")
+				//fmt.Printf("---kom så langt  5 \n ")
 				Standing_downwards_bid[new_auction_data.Floor]=new_auction_data.Bid*new_auction_data.Add
 			default:
 				fmt.Printf("Dette skal ikkje skje .. timer ln 50 mottok eit ugyldig bud")

@@ -228,15 +228,16 @@ func Listen_for_system_data(){
 	fmt.Printf("looking for friends  3\n")
 	for Looking_for_friends == true{
 		fmt.Printf("looking for friends 4 \n")
-		fmt.Printf("looking for friends  \n")
+		
 		var buffer []byte = make([]byte, 256)
 		//er forrige pakke ulik den forrige?
 		rlen,radr,err := socket.ReadFromUDP(buffer)
+		fmt.Printf("looking for friends 5 \n")
 		if err != nil{
 			fmt.Println("ReadFromUDP failed, not able to recive from\n")
 			return
 		}
-		fmt.Println("Recived ", rlen, " bytes from",radr)
+		fmt.Println("Recived on Dedicated_system_data ", rlen, " bytes from",radr)
 //		fmt.Println(buffer)
 		switch {
     	case buffer[0] == 0:
