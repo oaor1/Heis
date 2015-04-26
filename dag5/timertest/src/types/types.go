@@ -44,8 +44,8 @@ type(
 		IP_list				[MAX_N_ELEVATORS] 		int		//
 		M_handle_q			[N_FLOORS][2*MAX_N_ELEVATORS]	int
 		M_internal_elev_out	[N_FLOORS][MAX_N_ELEVATORS]	int
-		M_UpAuction_q		[N_FLOORS]		int
-		M_DownAuction_q		[N_FLOORS]		int
+//		M_UpAuction_q		[N_FLOORS]		int
+//		M_DownAuction_q		[N_FLOORS]		int
 	}
 
 	Elevator_state struct{
@@ -56,8 +56,10 @@ type(
 	Handle_confirmation int  //manager faar bekreftelse paa etasje besok
 
 	Update_system_data struct{
+		Elevator_IP int
+		Elevator_number int 
 		Add_order int //1 for add and 0 for delete
-		Matrix_type int //0-3, Upauction, downauction, handel, internal out
+		Update_type int //0-3, IP_LIST - DELETE_TIMERS  -  UPDATE_HANDLE_q
 		Elevator_n int
 		Floor_n int
 		Direction int // 0 = up  ----  1 DOWN
@@ -71,7 +73,7 @@ type(
 		Elevator_IP int
 		Elevator_number int 
 		Add int
-		//Number_of_elevators int
+		
 
 	}
 )

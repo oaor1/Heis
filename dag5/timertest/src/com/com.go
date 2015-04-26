@@ -19,14 +19,16 @@ const (
 var (
 	Looking_for_friends = true
 //Oppretter globale chanels for å komunisere med manager
-	System_data_sendToManagerCh = make(chan types.System_data)
+	System_data_sendToManagerCh = make(chan types.System_data, 10)
 	System_data_sendToComCh = make(chan types.System_data)
+	
 	Dedicated_system_data_sendToComCh = make(chan types.System_data)
+	Dedicated_system_data_sendToManagerCh = make(chan types.System_data, 10)
 
-	Auction_bid_sendToManagerCh = make(chan types.Auction_data)
+	Auction_bid_sendToManagerCh = make(chan types.Auction_data, 10)
 	Auction_bid_sendToComCh = make(chan types.Auction_data)
 
-	Update_system_data_sendToManagerCh = make (chan types.Update_system_data)
+	Update_system_data_sendToManagerCh = make (chan types.Update_system_data, 10)
 	Update_system_data_sendToComCh = make (chan types.Update_system_data)
 
 /*
@@ -71,7 +73,7 @@ func Recive(){
 	}
 	
 	for {
-		var buffer []byte = make([]byte, 256)
+		var buffer []byte = make([]byte, 512)
 		//er forrige pakke ulik den forrige?
 		rlen,radr,err := socket.ReadFromUDP(buffer)
 		if err != nil{
@@ -199,6 +201,7 @@ func Send_system_data(){
 			for i := 0; i < len(resMarshal); i++ {
 				buffer [i+1] = resMarshal [i]
 			}
+
 			fmt.Println("System_data: ",serverAddress)
 			for i := 0; i<1; i++{
 				_,err := socket.Write(buffer)
@@ -229,7 +232,7 @@ func Listen_for_system_data(){
 	for Looking_for_friends == true{
 		fmt.Printf("looking for friends 4 \n")
 		
-		var buffer []byte = make([]byte, 256)
+		var buffer []byte = make([]byte, 512)
 		//er forrige pakke ulik den forrige?
 		rlen,radr,err := socket.ReadFromUDP(buffer)
 		fmt.Printf("looking for friends 5 \n")
@@ -252,7 +255,7 @@ func Listen_for_system_data(){
 				return
 			}
 
-			System_data_sendToManagerCh <- resUnmarshal
+			Dedicated_system_data_sendToManagerCh <- resUnmarshal
 			
 		default:
 			fmt.Println("unknown type of struct")

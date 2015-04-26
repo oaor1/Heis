@@ -17,7 +17,10 @@ Manager
 
 	kontinuerlig sjekk om andre har samme elevator number: løsning 
 			laveste ip hopper ned i lista
+
+	Når man mottar data må man sjekke at Elevator_number er ulikt sitt eget nummer og evt forkaste sine egene meldinger
 	
+	fylle ut
 */
 
 
@@ -47,14 +50,13 @@ var(
 )
 
 func main(){
-	
+	  
+	fmt.Printf("this is my ip:%d", types.MY_IP)  
 	go timeout_check_for_life_on_network()
-
 	go com.Listen_for_system_data()
-
 	go init_manager()
 
-	time.Sleep(types.LOOK_FOR_FRIENDS*time.Millisecond)
+	time.Sleep(types.LOOK_FOR_FRIENDS*2*time.Millisecond)
 	
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	fmt.Printf("this is my ip:%d", types.MY_IP)  
@@ -63,9 +65,11 @@ func main(){
 
 
 	fmt.Print("-------- hallo from main --------------\n")
+	fmt.Printf("this is my elevator number :%d", types.MY_NUMBER)
 	
 	go elevator.Run()
 	
+	go send_system_data_to_com()
 	go manager_listen_for_elevator()
 	go listen_for_timeout()
 	go determine_next_floor()
@@ -79,6 +83,7 @@ func main(){
 //	go Update_button_lamps()
 	
 //	go com.Com_listen_for_manager()
+	go com.Send_system_data()
 	go com.Send()
 	go com.Recive()
 	
@@ -92,10 +97,11 @@ func timeout_check_for_life_on_network(){
 	no_one_is_aliveCH <- true
 }
 
-func send_system_data_to_network() {
-	time.Sleep(50*time.Millisecond)
-	com.Dedicated_system_data_sendToComCh <- System_data
-	
+func send_system_data_to_com() {
+	for{
+		com.Dedicated_system_data_sendToComCh <- System_data
+		time.Sleep(500*time.Millisecond)
+	}
 }
 
 
@@ -104,12 +110,7 @@ func init_manager(){
 	fmt.Printf("initializing")
 	for initialized==false{
 		select{
-		case <- no_one_is_aliveCH:
-			fmt.Printf(":( :( :( :( :( FOREVER ALONE :( :( :( :( :( :(  \n")
-			types.MY_NUMBER = 0
-			initialized = true
-			com.Looking_for_friends = false
-		case system_data := <- com.System_data_sendToManagerCh:
+		case system_data := <- com.Dedicated_system_data_sendToManagerCh:
 			fmt.Printf("-----------FOUND SOME FRIENDS JIPPI! ----------------------\n")
 			for i := 0; i < types.MAX_N_ELEVATORS; i++ {
 				if system_data.IP_list[i]==types.MY_IP{
@@ -119,13 +120,26 @@ func init_manager(){
 					break
 				}else if system_data.IP_list[i]==0{
 					types.MY_NUMBER=i
+					system_data.IP_list[i]=types.MY_IP
+					var system_data_update types.Update_system_data
+					system_data_update.Elevator_IP = types.MY_IP
+					system_data_update.Elevator_number = types.MY_NUMBER
+					Update_system_data_sendToComCh <- system_data_update
 					initialized = true
 					com.Looking_for_friends = false
 					break
 				}
 			}
-		initialized = true
+		case <- no_one_is_aliveCH:
+			fmt.Printf(":( :( :( :( :( FOREVER ALONE :( :( :( :( :( :(  \n")
+			types.MY_NUMBER = 0
+			initialized = true
+			com.Looking_for_friends = false
+		
+		default:
+
 		}
+	time.Sleep(10*time.Millisecond)
 	}
 }
 
@@ -142,6 +156,13 @@ func manager_listen_for_elevator(){
 				//oppdater handle q i timer og send sys dat update til alle andre heisane
 				System_data.M_internal_elev_out[order_to_delete][types.MY_NUMBER] = 0 
 				timer.Executed_orderCh <- order_to_delete
+				var system_data_update types.System_data_update
+				system_data_update.Add_order = 0
+				system_data_update.Update_type = 1
+				system_data_update.Floor_n = order_to_delete
+				system_data_update.Elevator_number = types.MY_NUMBER
+				updated_system_data_sendToComCh <- system_data_update
+
 
 			case new_external_auction_data := <- elevator.External_orderCh:
 				fmt.Printf("fikk nokke paa external order ch \n")
@@ -234,16 +255,23 @@ func manager_listen_for_com(){
 			}
 			
 		case new_system_data_update := <- com.Update_system_data_sendToManagerCh:
-//			fmt.Printf("---ny system data update fra com til manager\n %v",new_system_data_update)
+			fmt.Printf("---ny system data update fra com til manager\n %v",new_system_data_update)
 			switch{
-				case new_system_data_update.Matrix_type == 0: //  UpAuction_q
-					System_data.M_UpAuction_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
-				case new_system_data_update.Matrix_type == 1: // DownAuction_q
-					System_data.M_DownAuction_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
+				case new_system_data_update.Update_type == 0: //  add elevator in ip list
+					System_data.IP_list[new_system_data_update.Elevator_number]=new_system_data_update.Elevator_IP
+				case new_system_data_update.Update_type == 1: // delete timers
+					//lage auction data og sende til timer 
+					var delete_peripheral_order types.Auction_data
+					delete_peripheral_order.Elevator_number = new_system_data_update.Elevator_number
+					delete_peripheral_order.Floor = new_system_data_update.Floor_n
+					delete_peripheral_order.Add = 0
+					timer.NewPeripheralOrderCh <- delete_peripheral_order
+					
 				//case new_system_data_update.Matrix_type == 2: // handel_q    //usikker paa om denne funksjonaliteten er oensket 
 				//	System_data.M_handle_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
 				case new_system_data_update.Matrix_type == 3: // internal out
 					System_data.M_internal_elev_out[new_system_data_update.Floor_n][new_system_data_update.Direction+types.MY_NUMBER*2] = 1 // andre kan aldri slette interne ut-bestillinger
+				case 
 			}
 		}
 	}

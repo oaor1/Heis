@@ -17,6 +17,7 @@ var(
 	Handle_q_timeoutCh = make(chan types.Auction_data)
 	Executed_orderCh = make(chan int)
 
+
 	//Number_of_elevators int
 
 	Up_order_timer [types.N_FLOORS] int
@@ -55,12 +56,13 @@ func Listen_for_auctiondata_from_manager(){
 				fmt.Printf("Dette skal ikkje skje .. timer ln 50 mottok eit ugyldig bud")
 			}
 		case new_peripheral_order := <- NewPeripheralOrderCh:
-			Handle_q_timer[new_peripheral_order.Floor][new_peripheral_order.Elevator_number*2+new_peripheral_order.Direction]=new_peripheral_order.Bid
+			Handle_q_timer[new_peripheral_order.Floor][new_peripheral_order.Elevator_number*2+new_peripheral_order.Direction]=new_peripheral_order.Bid*new_peripheral_order.Add
 			//ny perifer ordre maa legges til i timout queue
 			fmt.Printf("---nokken har tatt på seg eit oppdrag, vi maa ta tida\n %v",new_peripheral_order)
 		case new_executed_order := <- Executed_orderCh:
 			Handle_q_timer[new_executed_order][types.MY_NUMBER*2]=0
 			Handle_q_timer[new_executed_order][types.MY_NUMBER*2+1]=0
+
 
 		default:
 			
