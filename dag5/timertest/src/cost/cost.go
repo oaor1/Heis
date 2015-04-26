@@ -5,8 +5,6 @@ import(
 	
 )
 
-
-
 func Calculate_cost(System_data types.System_data, auction_data types.Auction_data, elevator_state types.Elevator_state) int{
 	cost := 0
 	up_orders := 0
@@ -27,8 +25,7 @@ func Calculate_cost(System_data types.System_data, auction_data types.Auction_da
 			diff_cost = diff*-1
 		}else{
 			diff_cost = diff
-		}
-		
+		}		
 	}
 	if elevator_state.Direction == 0{
 		dwn_orders = dwn_orders*2
@@ -37,7 +34,6 @@ func Calculate_cost(System_data types.System_data, auction_data types.Auction_da
 		up_orders = up_orders*2
 	}
 	cost = up_orders + dwn_orders + diff_cost
-	
 	
 	return cost
 }

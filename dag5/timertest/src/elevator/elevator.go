@@ -52,7 +52,6 @@ func Run(){
 	//Elevator initialized and in a definite floor
 	go Update_channels()
 	go Read_order_buttons()
-	go Print()
 	Idle()
 	<- done
 }
@@ -123,6 +122,7 @@ func Up(){
 			fmt.Println("Obstruksjon RUNUP\n")
 			time.Sleep(100*time.Millisecond)
 		}
+		driver.Elev_set_motor_direction(ElevDirection)
 		var actual_floor = driver.Elev_get_floor_sensor_signal()
 		switch{
 			case actual_floor == next_floor: //Her må det gjøres noe
@@ -151,6 +151,7 @@ func Down(){
 			fmt.Println("Obstruksjon RUNUP\n")
 			time.Sleep(100*time.Millisecond)
 		}
+		driver.Elev_set_motor_direction(ElevDirection)
 		var actual_floor = driver.Elev_get_floor_sensor_signal()
 		switch{
 			case current_floor == next_floor:
@@ -165,7 +166,6 @@ func Down(){
 				Stopp()
 			default:	
 		}
-		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}
 }
 
@@ -192,7 +192,6 @@ func Update_channels(){
 		select{
 		case next_floor = <- Next_floorCh:
 			wasJustHere = false
-			fmt.Println("Mottok next_floor fra Next_floorCh\n")
 		default:
 		}
 		var check_floor = driver.Elev_get_floor_sensor_signal()
@@ -247,35 +246,6 @@ func Set_button_lamps(button int, floor int, value int){
 	driver.Elev_set_button_lamp(button, floor, value)
 }
 
-
-
-/*func Read_order_buttons(){
-	fmt.Println("halloen frå read order butoons")
-
-	for{
-		for i :=0; i < types.N_FLOORS; i++{
-			if driver.Elev_get_button_signal(2,i) != 0{
-				driver.Elev_set_button_lamp(2,i,1)
-				Internal_orderCh <- i
-				fmt.Println("trykker paa knapppp")
-				next_floor = i
-			}
-			for j := 0; j < 3; j++{
-				if driver.Elev_get_button_signal(j, i) != 0{
-					driver.Elev_set_button_lamp(j,i,1)
-					var new_order types.Auction_data
-					new_order.Floor = i
-					new_order.Direction = j
-					fmt.Println("trykker paa knapppp")
-					External_orderCh <- new_order
-				}
-			}
-		}
-		time.Sleep(5*time.Millisecond)
-	}
-}
-*/
-
 func DoorTimer(){
 	for{
 		<-doorTimerStartCh
@@ -292,18 +262,5 @@ func FloorLigths(){
 	for{
 		time.Sleep(50*time.Millisecond)
 		driver.Elev_set_floor_indicator(driver.Elev_get_floor_sensor_signal())
-	}
-}
-
-func Print(){
-	for{
-		fmt.Printf("current floor: %d, Direction: %d, next_floor: %d\n" ,current_floor, ElevDirection, next_floor)
-/*
-		var state types.Elevator_state
-		state.Direction = ElevDirection
-		state.Last_floor = current_floor
-*/
-
-		time.Sleep(3*time.Second)
 	}
 }
