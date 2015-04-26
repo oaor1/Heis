@@ -66,7 +66,9 @@ func Idle(){
 		for{
 			for driver.Elev_get_obstruction_signal() == 1{
 				time.Sleep(100*time.Millisecond)
+
 			}
+
 			switch{
 				case driver.Elev_get_floor_sensor_signal() == next_floor && !wasJustHere:
 					Open()
@@ -121,17 +123,19 @@ func Up(){
 			fmt.Println("Obstruksjon RUNUP\n")
 			time.Sleep(100*time.Millisecond)
 		}
+		var actual_floor = driver.Elev_get_floor_sensor_signal()
 		switch{
-			case driver.Elev_get_floor_sensor_signal() == next_floor: //Her må det gjøres noe
+			case actual_floor == next_floor: //Her må det gjøres noe
 				Open()
-			case driver.Elev_get_floor_sensor_signal() == types.N_FLOORS-1:
+				if actual_floor != types.N_FLOORS-1{ ElevDirection = types.RUNDOWN}
+			case actual_floor == types.N_FLOORS-1 && actual_floor != next_floor:
 				ElevDirection = types.RUNDOWN
+				driver.Elev_set_motor_direction(types.STOPP)				
 				fmt.Println("saftey set down\n")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
 				Stopp()
-			default:
-				
+			default:	
 		}
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}
@@ -147,17 +151,19 @@ func Down(){
 			fmt.Println("Obstruksjon RUNUP\n")
 			time.Sleep(100*time.Millisecond)
 		}
+		var actual_floor = driver.Elev_get_floor_sensor_signal()
 		switch{
 			case current_floor == next_floor:
 				Open()
-			case driver.Elev_get_floor_sensor_signal() == 0:
-				ElevDirection = types.RUNDOWN
-				fmt.Println("saftey set down\n")
+				if actual_floor != 0{ ElevDirection = types.RUNDOWN}
+			case actual_floor == 0 && actual_floor != next_floor:
+				ElevDirection = types.RUNUP
+				driver.Elev_set_motor_direction(types.STOPP)		
+				fmt.Println("saftey set up\n")
 				Idle()
 			case driver.Elev_get_stop_signal() == 1:
 				Stopp()
-			default:
-				
+			default:	
 		}
 		//Do we need any saftey feature to prevent the eleavtor crash into the roof
 	}

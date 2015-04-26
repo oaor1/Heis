@@ -95,7 +95,7 @@ func main(){
 	go com.Send()
 	go com.Recive()
 	
-	time.Sleep(100*time.Second)
+	time.Sleep(1000*time.Second)
 
 }
 
@@ -106,8 +106,8 @@ func timeout_check_for_life_on_network(){
 
 func send_system_data_to_com() {
 	for{
-		fmt.Printf("this is my number %d \n", types.MY_NUMBER)
-		fmt.Printf("this is my ip %d \n", types.MY_IP)
+		//fmt.Printf("this is my number %d \n", types.MY_NUMBER)
+		//fmt.Printf("this is my ip %d \n", types.MY_IP)
 		com.Dedicated_system_data_sendToComCh <- System_data
 		time.Sleep(500*time.Millisecond)
 	}
@@ -177,8 +177,9 @@ func manager_listen_for_elevator(){
 
 
 			case new_external_auction_data := <- elevator.External_orderCh:
-				fmt.Printf("fikk nokke paa external order ch \n")
-				new_local_bid := cost.Calculate_cost(System_data, new_external_auction_data)
+				//fmt.Printf("fikk nokke paa external order ch \n")
+			
+				new_local_bid := cost.Calculate_cost(System_data, new_external_auction_data, Elevator_state)
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = new_local_bid
 				new_external_auction_data.Add = 1
@@ -232,7 +233,7 @@ func manager_listen_for_com(){
 		case new_external_auction_data := <- com.Auction_bid_sendToManagerCh:
 			fmt.Printf("---nytt bud fra com til manager \n sender videre til timer\n %v \n",new_external_auction_data)
 			fmt.Printf("\n")
-			new_internal_bid := cost.Calculate_cost(System_data, new_external_auction_data)
+			new_internal_bid := cost.Calculate_cost(System_data, new_external_auction_data, Elevator_state)
 			if new_internal_bid < new_external_auction_data.Bid{
 				fmt.Printf("jeg kan slå dette budet STÅENDE VINNERBUD\n")
 				new_external_auction_data.Elevator_IP = types.MY_IP            
@@ -246,7 +247,7 @@ func manager_listen_for_com(){
 				new_external_auction_data.Elevator_IP = types.MY_IP            
 				new_external_auction_data.Bid = 0
 				new_external_auction_data.Add = 0
-				com.Auction_bid_sendToComCh <- new_external_auction_data
+				//com.Auction_bid_sendToComCh <- new_external_auction_data
 				timer.NewAuctionInfoToTimerCh <- new_external_auction_data
 
 			}else if new_internal_bid == new_external_auction_data.Bid{ 
@@ -296,7 +297,7 @@ func listen_for_timeout(){
 		case peripheral_timout := <- timer.Handle_q_timeoutCh:
 			//trigge ny budrunde
 //			fmt.Printf("---Nokken har somla vi maa trigge ny budrunde\n %v",peripheral_timout)
-			new_local_bid := cost.Calculate_cost(System_data, peripheral_timout)
+			new_local_bid := cost.Calculate_cost(System_data, peripheral_timout, Elevator_state)
 			peripheral_timout.Elevator_IP = types.MY_IP            
 			peripheral_timout.Bid = new_local_bid
 			peripheral_timout.Add = 1
@@ -346,13 +347,13 @@ func determine_next_floor(){
 				}
 			}
 		}		
-		time.Sleep(1000*time.Millisecond)
+		time.Sleep(500*time.Millisecond)
 	}
 }
 
 
 func start_auction(external_bid types.Auction_data){ //lage to funskjoner for forskjellige triggere
-	new_internal_bid := cost.Calculate_cost(System_data, external_bid)
+	new_internal_bid := cost.Calculate_cost(System_data, external_bid, Elevator_state)
 	if new_internal_bid < external_bid.Bid{
 
 	}

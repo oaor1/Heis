@@ -168,7 +168,7 @@ func Send(){
 			for i := 0; i < len(resMarshal); i++ {
 				buffer [i+1] = resMarshal [i]
 			}
-			fmt.Println("System_data: ",serverAddress)
+			//fmt.Println("System_data: ",serverAddress)
 			for i := 0; i<1; i++{
 				_,err := socket.Write(buffer)
 				if err!= nil{
@@ -202,7 +202,7 @@ func Send_system_data(){
 				buffer [i+1] = resMarshal [i]
 			}
 
-			fmt.Println("System_data: ",serverAddress)
+			//fmt.Println("System_data: ",serverAddress)
 			for i := 0; i<1; i++{
 				_,err := socket.Write(buffer)
 				if err!= nil{

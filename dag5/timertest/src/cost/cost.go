@@ -2,25 +2,16 @@ package cost
 
 import(
 	"../types"
+	
 )
 
-const(
-	WRONG_DIR_COST = 2
-)
 
-func Calculate_cost(System_data types.System_data, auction_bid types.Auction_data) int{
-	cost := 8
+
+func Calculate_cost(System_data types.System_data, auction_data types.Auction_data, elevator_state types.Elevator_state) int{
+	cost := 0
 	up_orders := 0
 	dwn_orders := 0
-	//overlap_orders := 0
-	//myNumber := New_auction_data.Elevator_number
-	/*
-	++++ obstruksjon
-	++++ stoppknapp
-	+ antall bestillinger i samme retning ^Y  * distandse * konst
-	+ antall bestillinger i motsatt retning ^X * distanse * konst
-	- overlappende bestillinger (bor splittes i to caser , en for hver retning)
-	*/
+	diff_cost := 0
 	for i := 0; i < types.N_FLOORS; i++ {
 		if System_data.M_handle_q[0][i] == 1{
 			up_orders++
@@ -29,17 +20,24 @@ func Calculate_cost(System_data types.System_data, auction_bid types.Auction_dat
 			dwn_orders++
 
 		}
-		//if System_data.internal_elev_out[myNumber][New_auction_data.]
-	/*	
 	}
-	if elevator_status.Direction == types.RUNUP{
-		dwn_orders = dwn_orders * WRONG_DIR_COST
-	}else if elevator_status:Direction == types.RUNUP{
-		up_orders = up_orders * WRONG_DIR_COST
+	if elevator_state.Direction != auction_data.Direction{
+		diff := elevator_state.Last_floor - auction_data.Floor
+		if diff < 0{
+			diff_cost = diff*-1
+		}else{
+			diff_cost = diff
+		}
+		
 	}
-	*/
+	if elevator_state.Direction == 0{
+		dwn_orders = dwn_orders*2
+	}
+	if elevator_state.Direction == 1{
+		up_orders = up_orders*2
+	}
+	cost = up_orders + dwn_orders + diff_cost
 	
 	
-	}
 	return cost
 }

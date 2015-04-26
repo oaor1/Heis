@@ -6,8 +6,9 @@ import (
 	"time"
 )
 const(
-	AUCTIONTIME = 100  // the timer will count for something like AUCTIONTIME * DECREMENT_INTERVAL
-	DECREMENT_INTERVAL = 4*time.Millisecond
+	AUCTIONTIME = 250  // the timer will count for something like AUCTIONTIME * DECREMENT_INTERVAL
+	DECREMENT_INTERVAL_AUCTION = 4*time.Millisecond
+	DECREMENT_HANDLE_TIMER = 1*time.Second
 )
 
 var(
@@ -98,6 +99,7 @@ func Decrement_and_check_handle_timers(){
 				}
 			}
 		}
+	time.Sleep(DECREMENT_HANDLE_TIMER)
 	}
 }
 
@@ -137,7 +139,7 @@ func Decrement_and_check_auction_timers(){
 				NotifyWinningBidToManagerCh <- WinningBid
 			}
 		}
-	time.Sleep(DECREMENT_INTERVAL) 
+	time.Sleep(DECREMENT_INTERVAL_AUCTION) 
 	}	
 }
 

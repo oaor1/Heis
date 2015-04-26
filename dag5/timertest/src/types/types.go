@@ -5,7 +5,7 @@ import(
 	"strings"
 	"net"
 	"strconv"
-	"fmt"
+
 )
 
 var(
@@ -22,7 +22,7 @@ const(
 
 	TIMEOUT = 3*time.Second
 
-	LOOK_FOR_FRIENDS = 150
+	LOOK_FOR_FRIENDS = 500
 
 	HANDEL_Q = 0
 	INTERNAL_ELEV_OUT = 1
@@ -50,8 +50,9 @@ type(
 	}
 
 	Elevator_state struct{
-		Direction int     //    RUNUP / RUNDOWN / STOP
-		Last_floor int   //    0 - 3 
+		Direction int      //    RUNUP / RUNDOWN / STOP
+		Last_floor int    //    0 - 3 
+		Obstruction bool 
 	}
 
 	Handle_confirmation int  //manager faar bekreftelse paa etasje besok
