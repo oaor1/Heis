@@ -99,6 +99,8 @@ func timeout_check_for_life_on_network(){
 
 func send_system_data_to_com() {
 	for{
+		fmt.Printf("this is my number %d \n", types.MY_NUMBER)
+		fmt.Printf("this is my ip %d \n", types.MY_IP)
 		com.Dedicated_system_data_sendToComCh <- System_data
 		time.Sleep(500*time.Millisecond)
 	}
@@ -110,21 +112,23 @@ func init_manager(){
 	fmt.Printf("initializing")
 	for initialized==false{
 		select{
-		case system_data := <- com.Dedicated_system_data_sendToManagerCh:
+		case load_system_data := <- com.Dedicated_system_data_sendToManagerCh:
 			fmt.Printf("-----------FOUND SOME FRIENDS JIPPI! ----------------------\n")
-			for i := 0; i < types.MAX_N_ELEVATORS; i++ {
-				if system_data.IP_list[i]==types.MY_IP{
+			for i := 1; i < types.MAX_N_ELEVATORS; i++ {
+				if load_system_data.IP_list[i]==types.MY_IP{
 					types.MY_NUMBER=i
+					System_data = load_system_data
 					initialized = true
 					com.Looking_for_friends = false
 					break
-				}else if system_data.IP_list[i]==0{
+				}else if load_system_data.IP_list[i]==0{
 					types.MY_NUMBER=i
-					system_data.IP_list[i]=types.MY_IP
+					load_system_data.IP_list[i]=types.MY_IP
 					var system_data_update types.Update_system_data
 					system_data_update.Elevator_IP = types.MY_IP
 					system_data_update.Elevator_number = types.MY_NUMBER
-					Update_system_data_sendToComCh <- system_data_update
+					com.Update_system_data_sendToComCh <- system_data_update
+					System_data = load_system_data
 					initialized = true
 					com.Looking_for_friends = false
 					break
@@ -156,12 +160,12 @@ func manager_listen_for_elevator(){
 				//oppdater handle q i timer og send sys dat update til alle andre heisane
 				System_data.M_internal_elev_out[order_to_delete][types.MY_NUMBER] = 0 
 				timer.Executed_orderCh <- order_to_delete
-				var system_data_update types.System_data_update
+				var system_data_update types.Update_system_data
 				system_data_update.Add_order = 0
 				system_data_update.Update_type = 1
 				system_data_update.Floor_n = order_to_delete
 				system_data_update.Elevator_number = types.MY_NUMBER
-				updated_system_data_sendToComCh <- system_data_update
+				com.Update_system_data_sendToComCh <- system_data_update
 
 
 			case new_external_auction_data := <- elevator.External_orderCh:
@@ -261,17 +265,17 @@ func manager_listen_for_com(){
 					System_data.IP_list[new_system_data_update.Elevator_number]=new_system_data_update.Elevator_IP
 				case new_system_data_update.Update_type == 1: // delete timers
 					//lage auction data og sende til timer 
-					var delete_peripheral_order types.Auction_data
-					delete_peripheral_order.Elevator_number = new_system_data_update.Elevator_number
-					delete_peripheral_order.Floor = new_system_data_update.Floor_n
-					delete_peripheral_order.Add = 0
-					timer.NewPeripheralOrderCh <- delete_peripheral_order
+					var set_peripheral_order types.Auction_data
+					set_peripheral_order.Elevator_number = new_system_data_update.Elevator_number
+					set_peripheral_order.Floor = new_system_data_update.Floor_n
+					set_peripheral_order.Add = new_system_data_update.Add_order
+					timer.NewPeripheralOrderCh <- set_peripheral_order
 					
-				//case new_system_data_update.Matrix_type == 2: // handel_q    //usikker paa om denne funksjonaliteten er oensket 
-				//	System_data.M_handle_q[new_system_data_update.Floor_n] = new_system_data_update.Add_order
-				case new_system_data_update.Matrix_type == 3: // internal out
-					System_data.M_internal_elev_out[new_system_data_update.Floor_n][new_system_data_update.Direction+types.MY_NUMBER*2] = 1 // andre kan aldri slette interne ut-bestillinger
-				case 
+				case new_system_data_update.Update_type == 2: // handel_q   
+
+					System_data.M_handle_q[new_system_data_update.Floor_n][2*new_system_data_update.Elevator_number+new_system_data_update.Direction] = new_system_data_update.Add_order
+				default:
+				
 			}
 		}
 	}
@@ -314,21 +318,21 @@ func determine_next_floor(){
 	for{
 		if Elevator_state.Direction == types.RUNDOWN{
 			for i := Elevator_state.Last_floor; i >= 0; i-- {
-				if System_data.M_handle_q[i][types.DOWN]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
+				if System_data.M_handle_q[i][2*types.MY_NUMBER+types.DOWN]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
 					elevator.Next_floorCh <- i
 				break
 				}
 			}
 		}else if Elevator_state.Direction == types.RUNUP{
 			for i := Elevator_state.Last_floor; i < types.N_FLOORS; i++ {
-				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
+				if System_data.M_handle_q[i][2*types.MY_NUMBER+types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1{
 					elevator.Next_floorCh <- i
 				break
 				}
 			}
 		}else if Elevator_state.Direction == types.STOPP{
 			for i := 0; i <types.N_FLOORS; i++ {
-				if System_data.M_handle_q[i][types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1||System_data.M_handle_q[i][types.DOWN]==1{
+				if System_data.M_handle_q[i][2*types.MY_NUMBER+types.UP]==1||System_data.M_internal_elev_out[i][types.MY_NUMBER]==1||System_data.M_handle_q[i][2*types.MY_NUMBER+types.DOWN]==1{
 					elevator.Next_floorCh <- i
 				break
 				}

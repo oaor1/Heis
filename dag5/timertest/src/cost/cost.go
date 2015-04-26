@@ -9,7 +9,7 @@ const(
 )
 
 func Calculate_cost(System_data types.System_data, auction_bid types.Auction_data) int{
-	cost := 6
+	cost := 8
 	up_orders := 0
 	dwn_orders := 0
 	//overlap_orders := 0
