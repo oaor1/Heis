@@ -49,6 +49,7 @@ func main(){
 	go timer.Run()
 	go com.Run()
 	<-done
+
 }
 
 func timeout_check_for_life_on_network(){
